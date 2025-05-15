@@ -5,6 +5,7 @@ import type { Review } from '../types/Review';
 import { useAuth } from '../contexts/AuthContext';
 import { API_URL } from '../config';
 import { FiArrowLeft, FiHeart, FiShoppingBag, FiStar, FiUser, FiCalendar, FiCheck, FiMessageSquare } from 'react-icons/fi';
+import ImageWithFallback from './ImageWithFallback';
 
 // Rating Stars Component
 const RatingStars = ({ rating, size = 'md' }: { rating: number, size?: 'sm' | 'md' | 'lg' }) => {
@@ -263,17 +264,12 @@ const ProductDetails = () => {
         <div className="md:flex">
           <div className="md:w-1/2 relative">
             <div className="absolute inset-0 bg-gradient-to-tr from-black/10 to-transparent z-10"></div>
-            {product.imageUrl ? (
-              <img
-                src={product.imageUrl}
-                alt={product.name}
-                className="w-full h-96 object-cover transition-transform duration-500 hover:scale-105"
-              />
-            ) : (
-              <div className="w-full h-96 bg-gradient-to-r from-blue-100 to-indigo-100 flex justify-center items-center">
-                <FiShoppingBag className="h-20 w-20 text-blue-300" />
-              </div>
-            )}
+            <ImageWithFallback
+              src={product.imageUrl}
+              alt={product.name}
+              className="w-full h-96 object-cover transition-transform duration-500 hover:scale-105"
+              fallbackClassName="w-full h-96"
+            />
             {Number(averageRating) >= 4.5 && (
               <div className="absolute top-4 right-4 bg-amber-400 text-gray-900 px-3 py-1 rounded-full text-sm font-semibold flex items-center z-20">
                 <FiStar className="mr-1" />

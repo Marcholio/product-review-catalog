@@ -6,6 +6,7 @@ import { Range } from 'react-range';
 import { FiFilter, FiArrowUp, FiChevronLeft, FiChevronRight, FiSearch, FiUser } from 'react-icons/fi';
 import type { IconBaseProps } from 'react-icons';
 import { useNavigate, Link } from 'react-router-dom';
+import ImageWithFallback from './ImageWithFallback';
 
 const IconWrapper: React.FC<IconBaseProps & { icon: React.ComponentType<IconBaseProps> }> = ({ icon: Icon, ...props }) => (
   <Icon {...props} />
@@ -413,13 +414,11 @@ const ProductList: React.FC = () => {
                       </svg>
                       <span>Featured</span>
                     </div>
-                    {product.imageUrl && (
-                      <img
-                        src={product.imageUrl}
-                        alt={product.name}
-                        className="w-full h-56 object-cover transition-transform duration-500 group-hover:scale-110"
-                      />
-                    )}
+                    <ImageWithFallback
+                      src={product.imageUrl}
+                      alt={product.name}
+                      className="w-full h-56 object-cover transition-transform duration-500 group-hover:scale-110"
+                    />
                   </div>
                   <div className="p-5">
                     <div className="flex justify-between items-start mb-2">
@@ -470,13 +469,11 @@ const ProductList: React.FC = () => {
               >
                 <div className="relative">
                   <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-transparent to-black/5 z-10"></div>
-                  {product.imageUrl && (
-                    <img
-                      src={product.imageUrl}
-                      alt={product.name}
-                      className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105"
-                    />
-                  )}
+                  <ImageWithFallback
+                    src={product.imageUrl}
+                    alt={product.name}
+                    className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105"
+                  />
                   {product.rating >= 4.5 && (
                     <div className="absolute top-2 right-2 bg-amber-400 text-gray-900 px-2 py-0.5 rounded-full text-xs font-medium z-20">
                       Featured
