@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import User from '../models/User.js';
-import { generateToken } from '../middleware/auth.js';
+import { generateToken } from '../middleware/auth/index.js';
 import sequelize from '../config/database.js';
 import { QueryTypes } from 'sequelize';
 import bcrypt from 'bcryptjs';

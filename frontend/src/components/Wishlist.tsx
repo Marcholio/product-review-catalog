@@ -28,8 +28,14 @@ const Wishlist = () => {
           throw new Error('Failed to fetch wishlist');
         }
         
-        const data = await response.json();
-        setWishlistItems(data);
+        const responseData = await response.json();
+        
+        // Handle new response format with data field
+        const data = responseData.success && responseData.data
+          ? responseData.data
+          : responseData;
+          
+        setWishlistItems(Array.isArray(data) ? data : []);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An error occurred');
       } finally {

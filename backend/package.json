@@ -2,14 +2,17 @@
   "name": "product-review-catalog-backend",
   "version": "1.0.0",
   "description": "Backend for the Product Review Catalog application",
-  "main": "dist/index.js",
+  "main": "dist/server.js",
   "type": "module",
   "scripts": {
-    "start": "node dist/index.js",
-    "dev": "NODE_ENV=development tsx watch src/index.ts",
+    "start": "node dist/server.js",
+    "dev": "NODE_ENV=development tsx watch src/server.ts",
+    "dev:seed": "NODE_ENV=development SEED_DATABASE=true tsx watch src/server.ts",
     "build": "tsc",
     "watch": "tsc -w",
-    "test": "jest"
+    "test": "jest",
+    "lint": "eslint src --ext .ts",
+    "seed": "NODE_ENV=development SEED_DATABASE=true tsx src/db/seed.ts"
   },
   "dependencies": {
     "@types/express-rate-limit": "^6.0.2",

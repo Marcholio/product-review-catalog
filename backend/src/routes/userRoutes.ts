@@ -1,6 +1,6 @@
 import express from 'express';
 import { register, login, updatePreferences, getProfile } from '../controllers/userController.js';
-import { auth } from '../middleware/auth.js';
+import { authenticate } from '../middleware/auth/index.js';
 
 const router = express.Router();
 
@@ -120,7 +120,7 @@ router.post('/login', login);
  *       500:
  *         description: Server error
  */
-router.get('/profile', auth, getProfile);
+router.get('/profile', authenticate, getProfile);
 
 /**
  * @swagger
@@ -159,6 +159,6 @@ router.get('/profile', auth, getProfile);
  *       500:
  *         description: Server error
  */
-router.patch('/preferences', auth, updatePreferences);
+router.patch('/preferences', authenticate, updatePreferences);
 
 export default router; 

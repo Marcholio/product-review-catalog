@@ -1,19 +1,22 @@
 import type { RateLimitRequestHandler } from 'express-rate-limit';
 import * as rateLimit from 'express-rate-limit';
+import config from './environment.js';
 
+/**
+ * Comprehensive security configuration
+ */
 export const securityConfig = {
   jwt: {
-    // Using a secure default secret for development, but should be overridden in production
-    secret: process.env.JWT_SECRET || 'dev-secret-key-change-in-production',
-    expiresIn: process.env.JWT_EXPIRES_IN || '1h',
+    secret: config.auth.jwtSecret,
+    expiresIn: config.auth.jwtExpiresIn,
     algorithm: 'HS256' as const,
     audience: process.env.JWT_AUDIENCE || 'product-review-catalog',
     issuer: process.env.JWT_ISSUER || 'product-review-catalog-api'
   },
   cors: {
-    allowedOrigins: process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : ['http://localhost:5173'],
+    origin: config.cors.allowedOrigins,
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     exposedHeaders: ['Content-Range', 'X-Content-Range'],
     maxAge: 86400 // 24 hours
@@ -26,7 +29,7 @@ export const securityConfig = {
       message: 'Too many requests from this IP, please try again later.',
       standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
       legacyHeaders: false, // Disable the `X-RateLimit-*` headers
-      skipSuccessfulRequests: process.env.NODE_ENV === 'development', // In development, don't count successful requests
+      skipSuccessfulRequests: !config.isProduction, // Skip successful requests in non-production
     },
     // More lenient rate limit for product search
     productSearch: {
@@ -35,7 +38,7 @@ export const securityConfig = {
       message: 'Too many search requests, please try again later.',
       standardHeaders: true,
       legacyHeaders: false,
-      skipSuccessfulRequests: process.env.NODE_ENV === 'development',
+      skipSuccessfulRequests: !config.isProduction,
     },
     // Stricter rate limit for authentication
     auth: {
@@ -49,7 +52,22 @@ export const securityConfig = {
   }
 };
 
-export const createRateLimiter = (type: 'default' | 'productSearch' | 'auth' = 'default'): RateLimitRequestHandler => {
+/**
+ * Create a rate limiter middleware
+ * @param type - The type of rate limiter to create
+ * @returns Rate limiter middleware
+ */
+export const createRateLimiter = (
+  type: 'default' | 'productSearch' | 'auth' = 'default'
+): RateLimitRequestHandler => {
+  // Handle different import formats
   const rl = (rateLimit as any).default ? (rateLimit as any).default : (rateLimit as any);
+  
+  // Only apply rate limiting if enabled or in production
+  if (!config.rateLimits.enableRateLimits && !config.isProduction) {
+    // Return a pass-through middleware when rate limiting is disabled
+    return (req, res, next) => next();
+  }
+  
   return rl(securityConfig.rateLimit[type]);
-}; 
+};

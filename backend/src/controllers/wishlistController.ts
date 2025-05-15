@@ -1,10 +1,7 @@
 import { Request, Response } from 'express';
 import Wishlist from '../models/Wishlist.js';
 import Product from '../models/Product.js';
-
-interface AuthRequest extends Request {
-  user?: any;
-}
+import type { AuthRequest } from '../middleware/auth/index.js';
 
 export const getWishlist = async (req: AuthRequest, res: Response) => {
   try {

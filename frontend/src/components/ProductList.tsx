@@ -120,17 +120,23 @@ const ProductList: React.FC = () => {
         throw new Error(errorMessage);
       }
       
-      const data = await response.json();
+      const responseData = await response.json();
+      
+      // Check for new response format (with data field) or old format
+      const data = responseData.success && responseData.data 
+        ? responseData.data 
+        : responseData;
+        
       console.log('Products fetched successfully:', {
-        count: data.products.length,
+        count: data.products?.length || 0,
         totalPages: data.totalPages,
         totalProducts: data.totalProducts
       });
       
       // Small delay to prevent UI flickering
       await new Promise(resolve => setTimeout(resolve, 300));
-      setProducts(data.products);
-      setTotalPages(data.totalPages);
+      setProducts(data.products || []);
+      setTotalPages(data.totalPages || 1);
       setError(null);
     } catch (err) {
       console.error('Error in fetchProducts:', err);
@@ -144,8 +150,15 @@ const ProductList: React.FC = () => {
     try {
       const response = await fetch(`${API_URL}/products/categories`);
       if (!response.ok) throw new Error('Failed to fetch categories');
-      const data = await response.json();
-      setCategories(data);
+      
+      const responseData = await response.json();
+      
+      // Check for new response format (with data field) or old format
+      const categories = responseData.success && responseData.data 
+        ? responseData.data 
+        : responseData;
+        
+      setCategories(Array.isArray(categories) ? categories : []);
     } catch (err) {
       console.error('Error fetching categories:', err);
     }

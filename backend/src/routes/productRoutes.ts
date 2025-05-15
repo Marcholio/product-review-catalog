@@ -1,5 +1,6 @@
 import express from 'express';
-import { getAllProducts, getProductById, getProductCategories, recalculateAllRatings } from '../controllers/productController.js';
+import productController from '../controllers/productController.js';
+import { optionalAuth } from '../middleware/auth/index.js';
 
 const router = express.Router();
 
@@ -54,7 +55,7 @@ const router = express.Router();
  *       500:
  *         description: Server error
  */
-router.get('/', getAllProducts);
+router.get('/', optionalAuth, productController.getAllProducts);
 
 /**
  * @swagger
@@ -75,7 +76,7 @@ router.get('/', getAllProducts);
  *       500:
  *         description: Server error
  */
-router.get('/categories', getProductCategories);
+router.get('/categories', productController.getProductCategories);
 
 /**
  * @swagger
@@ -90,7 +91,7 @@ router.get('/categories', getProductCategories);
  *       500:
  *         description: Server error
  */
-router.post('/admin/recalculate-ratings', recalculateAllRatings);
+router.post('/admin/recalculate-ratings', productController.recalculateAllRatings);
 
 /**
  * @swagger
@@ -118,6 +119,6 @@ router.post('/admin/recalculate-ratings', recalculateAllRatings);
  *       500:
  *         description: Server error
  */
-router.get('/:id', getProductById);
+router.get('/:id', optionalAuth, productController.getProductById);
 
-export default router; 
+export default router;

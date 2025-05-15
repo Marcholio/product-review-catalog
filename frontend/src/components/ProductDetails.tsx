@@ -108,11 +108,20 @@ const ProductDetails = () => {
           throw new Error('Failed to fetch reviews');
         }
 
-        const productData = await productResponse.json();
-        const reviewsData = await reviewsResponse.json();
+        const productResponseData = await productResponse.json();
+        const reviewsResponseData = await reviewsResponse.json();
+        
+        // Handle new response format with data field
+        const productData = productResponseData.success && productResponseData.data 
+          ? productResponseData.data 
+          : productResponseData;
+          
+        const reviewsData = reviewsResponseData.success && reviewsResponseData.data
+          ? reviewsResponseData.data
+          : reviewsResponseData;
         
         setProduct(productData);
-        setReviews(reviewsData);
+        setReviews(Array.isArray(reviewsData) ? reviewsData : []);
         
         // Only fetch wishlist if user is authenticated
         if (token) {
@@ -123,8 +132,17 @@ const ProductDetails = () => {
           });
           
           if (wishlistResponse.ok) {
-            const wishlistData = await wishlistResponse.json();
-            setIsInWishlist(wishlistData.some((item: any) => item.productId === parseInt(id!, 10)));
+            const wishlistResponseData = await wishlistResponse.json();
+            
+            // Handle new response format with data field
+            const wishlistData = wishlistResponseData.success && wishlistResponseData.data
+              ? wishlistResponseData.data
+              : wishlistResponseData;
+              
+            setIsInWishlist(
+              Array.isArray(wishlistData) && 
+              wishlistData.some((item: any) => item.productId === parseInt(id!, 10))
+            );
           }
         }
       } catch (err) {
@@ -160,7 +178,13 @@ const ProductDetails = () => {
         throw new Error('Failed to submit review');
       }
 
-      const review = await response.json();
+      const responseData = await response.json();
+      
+      // Handle new response format with data field
+      const review = responseData.success && responseData.data
+        ? responseData.data
+        : responseData;
+        
       setReviews([review, ...reviews]);
       setNewReview({ 
         rating: 5, 

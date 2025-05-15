@@ -50,12 +50,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         body: JSON.stringify({ email, password }),
       });
 
-      const data = await response.json();
+      const responseData = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || 'Login failed');
+        const errorMessage = responseData.message || responseData.error || 'Login failed';
+        throw new Error(errorMessage);
       }
 
+      // Handle new response format with data field
+      const data = responseData.success && responseData.data
+        ? responseData.data
+        : responseData;
+      
+      if (!data.user || !data.token) {
+        console.error('Invalid login response format:', data);
+        throw new Error('Invalid response from server');
+      }
+      
       setUser(data.user);
       setToken(data.token);
       localStorage.setItem('token', data.token);
@@ -78,22 +89,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         body: JSON.stringify({ email, password, name }),
       });
 
-      let data;
+      let responseData;
       try {
-        data = await response.json();
+        responseData = await response.json();
       } catch (parseError) {
         console.error('Error parsing JSON response:', parseError);
         throw new Error('Could not parse server response');
       }
 
       console.log('Registration response status:', response.status);
-      console.log('Registration response:', data ? 'Has data' : 'No data');
+      console.log('Registration response:', responseData ? 'Has data' : 'No data');
 
       if (!response.ok) {
-        const errorMessage = data?.message || data?.error || 'Registration failed';
+        const errorMessage = responseData?.message || responseData?.error || 'Registration failed';
         console.error('Registration failed with message:', errorMessage);
         throw new Error(errorMessage);
       }
+      
+      // Handle new response format with data field
+      const data = responseData.success && responseData.data
+        ? responseData.data
+        : responseData;
 
       if (!data || !data.token || !data.user) {
         console.error('Invalid registration response format:', data);
@@ -135,16 +151,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         body: JSON.stringify({ preferences }),
       });
 
-      const data = await response.json();
+      const responseData = await response.json();
 
       if (!response.ok) {
-        console.error('Preferences update failed:', data);
-        throw new Error(data.message || 'Failed to update preferences');
+        console.error('Preferences update failed:', responseData);
+        throw new Error(responseData.message || responseData.error || 'Failed to update preferences');
       }
 
+      // Handle new response format with data field
+      const data = responseData.success && responseData.data
+        ? responseData.data
+        : responseData;
+      
       console.log('Preferences update successful:', data);
-      setUser(data.user);
-      localStorage.setItem('user', JSON.stringify(data.user));
+      
+      if (data.user) {
+        setUser(data.user);
+        localStorage.setItem('user', JSON.stringify(data.user));
+      }
     } catch (error) {
       console.error('Error updating preferences:', error);
       throw error;
