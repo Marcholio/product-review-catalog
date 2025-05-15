@@ -33,7 +33,7 @@ const RatingStars = ({ rating, size = 'md' }: { rating: number, size?: 'sm' | 'm
 
 // Product Skeleton for loading state
 const ProductDetailsSkeleton = () => (
-  <div className="container mx-auto px-4 py-8 animate-pulse">
+  <div className="w-full px-4 py-8 animate-pulse">
     <div className="h-8 w-40 bg-gray-200 mb-6 rounded-md"></div>
     
     <div className="bg-white rounded-xl shadow-lg overflow-hidden">
@@ -206,7 +206,7 @@ const ProductDetails = () => {
 
   if (error) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <div className="w-full px-4 py-8">
         <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-xl shadow-md flex items-center justify-center">
           <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -219,7 +219,7 @@ const ProductDetails = () => {
 
   if (!product) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <div className="w-full px-4 py-8">
         <div className="bg-blue-50 border border-blue-200 text-blue-700 px-6 py-4 rounded-xl shadow-md flex items-center justify-center">
           <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -251,7 +251,7 @@ const ProductDetails = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="w-full px-4 py-8">
       <button
         onClick={() => navigate(-1)}
         className="mb-6 text-blue-600 hover:text-blue-800 transition-colors duration-200 flex items-center font-medium bg-white px-4 py-2 rounded-lg shadow-sm border border-gray-100"

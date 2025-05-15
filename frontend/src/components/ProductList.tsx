@@ -610,7 +610,7 @@ const ProductList: React.FC = () => {
 
   return (
     <div className="w-full min-h-[calc(100vh-4rem)]">
-      <div className="py-4 sm:py-6 lg:py-8">
+      <div className="py-4 sm:py-6 lg:py-8 w-full">
         {renderContent()}
       </div>
     </div>
