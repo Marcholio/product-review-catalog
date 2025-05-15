@@ -18,7 +18,8 @@ export const getAllProducts = async (req: Request, res: Response) => {
       sort = 'createdAt', 
       category,
       minBudget,
-      maxBudget
+      maxBudget,
+      search
     } = req.query;
 
     const offset = (Number(page) - 1) * Number(limit);
@@ -41,6 +42,12 @@ export const getAllProducts = async (req: Request, res: Response) => {
         ...(minBudget && { [Op.gte]: Number(minBudget) }),
         ...(maxBudget !== undefined && { [Op.lte]: Number(maxBudget) })
       };
+    }
+    if (search) {
+      where[Op.or] = [
+        { name: { [Op.iLike]: `%${search}%` } },
+        { description: { [Op.iLike]: `%${search}%` } }
+      ];
     }
 
     const { count, rows: products } = await Product.findAndCountAll({
