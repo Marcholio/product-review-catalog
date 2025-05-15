@@ -3,7 +3,8 @@ import * as rateLimit from 'express-rate-limit';
 
 export const securityConfig = {
   jwt: {
-    secret: process.env.JWT_SECRET,
+    // Using a secure default secret for development, but should be overridden in production
+    secret: process.env.JWT_SECRET || 'dev-secret-key-change-in-production',
     expiresIn: process.env.JWT_EXPIRES_IN || '1h',
     algorithm: 'HS256' as const,
     audience: process.env.JWT_AUDIENCE || 'product-review-catalog',

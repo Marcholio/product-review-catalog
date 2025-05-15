@@ -34,7 +34,8 @@ export const auth = async (req: AuthRequest, res: Response, next: NextFunction) 
     }
 
     try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+      const jwtSecret = securityConfig.jwt.secret as string;
+      const decoded = jwt.verify(token, jwtSecret);
       console.log('Token decoded:', decoded);
 
       if (!decoded || typeof decoded === 'string' || !decoded.id) {
@@ -92,19 +93,44 @@ export const auth = async (req: AuthRequest, res: Response, next: NextFunction) 
   }
 };
 
-export const generateToken = (user: User): string => {
-  if (!user || !user.id) {
+export const generateToken = (user: User | any): string => {
+  // Additional logging to debug token generation
+  console.log('Generating token for user:');
+  console.log('- User ID:', user?.id || (user?.dataValues?.id));
+  console.log('- User email:', user?.email || (user?.dataValues?.email));
+  console.log('- User type:', typeof user);
+  console.log('- Has dataValues:', !!user?.dataValues);
+  
+  // Get the user data, either directly or from dataValues
+  const userId = user?.id || (user?.dataValues?.id);
+  const userEmail = user?.email || (user?.dataValues?.email);
+  
+  if (!user) {
+    console.error('No user object provided for token generation');
     throw new Error('Invalid user object for token generation');
   }
-
-  if (!securityConfig.jwt.secret) {
-    throw new Error('JWT_SECRET environment variable is not set');
+  
+  if (!userId) {
+    console.error('No user ID found for token generation:', 
+      JSON.stringify({ 
+        userId, 
+        hasDataValues: !!user?.dataValues,
+        dataValuesId: user?.dataValues?.id
+      })
+    );
+    throw new Error('Invalid user object for token generation - no ID found');
   }
 
+  // securityConfig.jwt.secret will always have a value now (either from env or default)
+  const jwtSecret = securityConfig.jwt.secret as string;
+
+  // Create a minimal payload with just the required fields using our extracted values
   const payload = {
-    id: user.id,
-    email: user.email
+    id: userId,
+    email: userEmail
   };
+
+  console.log('Token payload:', payload);
 
   const options: SignOptions = {
     expiresIn: securityConfig.jwt.expiresIn as any,
@@ -115,7 +141,7 @@ export const generateToken = (user: User): string => {
 
   return jwt.sign(
     payload,
-    securityConfig.jwt.secret as Secret,
+    jwtSecret,
     options
   );
 }; 

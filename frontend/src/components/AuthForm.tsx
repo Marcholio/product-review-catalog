@@ -12,15 +12,33 @@ const AuthForm = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    
+    // Basic validation
+    if (!email || !email.includes('@')) {
+      setError('Please enter a valid email address');
+      return;
+    }
+    
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters long');
+      return;
+    }
+    
+    if (!isLogin && !name) {
+      setError('Please enter your name');
+      return;
+    }
 
     try {
       if (isLogin) {
         await login(email, password);
       } else {
+        console.log('Attempting to register user:', { email, name, passwordLength: password.length });
         await register(email, password, name);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      console.error('Auth form error:', err);
+      setError(err instanceof Error ? err.message : 'An error occurred during authentication');
     }
   };
 
@@ -86,7 +104,10 @@ const AuthForm = () => {
           </div>
 
           {error && (
-            <div className="text-red-500 text-sm text-center">{error}</div>
+            <div className="bg-red-50 border border-red-400 text-red-800 px-4 py-3 rounded relative" role="alert">
+              <strong className="font-bold">Error: </strong>
+              <span className="block sm:inline">{error}</span>
+            </div>
           )}
 
           <div>

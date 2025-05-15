@@ -33,20 +33,43 @@ class User extends Model<UserAttributes> implements UserAttributes {
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 
+  // Get properties safely from dataValues if direct access fails
+  get safeId(): number {
+    return this.id || this.getDataValue('id');
+  }
+  
+  get safeEmail(): string {
+    return this.email || this.getDataValue('email');
+  }
+  
+  get safeName(): string {
+    return this.name || this.getDataValue('name');
+  }
+  
+  get safePassword(): string {
+    return this.password || this.getDataValue('password');
+  }
+  
+  get safePreferences(): any {
+    return this.preferences || this.getDataValue('preferences') || {};
+  }
+
   public async comparePassword(candidatePassword: string): Promise<boolean> {
     try {
       console.log('Password comparison debug:');
       console.log('- Has candidate password:', !!candidatePassword);
-      console.log('- Has stored password:', !!this.password);
-      console.log('- Stored password type:', typeof this.password);
-      console.log('- Stored password length:', this.password?.length);
+      
+      const storedPassword = this.safePassword;
+      console.log('- Has stored password:', !!storedPassword);
+      console.log('- Stored password type:', typeof storedPassword);
+      console.log('- Stored password length:', storedPassword?.length);
 
-      if (!candidatePassword || !this.password) {
+      if (!candidatePassword || !storedPassword) {
         console.log('Missing password in comparison');
         return false;
       }
 
-      const result = await bcrypt.compare(candidatePassword, this.password);
+      const result = await bcrypt.compare(candidatePassword, storedPassword);
       console.log('- Comparison result:', result);
       return result;
     } catch (error) {
@@ -94,7 +117,10 @@ User.init(
   {
     sequelize,
     modelName: 'User',
+    // We're now handling password hashing in the controller instead of hooks
     hooks: {
+      // Keep hooks for reference but disable them
+      /* 
       beforeCreate: async (user: User) => {
         if (user.password) {
           try {
@@ -107,7 +133,7 @@ User.init(
             console.log('- Hashed password length:', hashedPassword.length);
             
             // Explicitly set the hashed password
-            user.setDataValue('password', hashedPassword);
+            user.password = hashedPassword;
           } catch (error) {
             console.error('Password hashing error:', error);
             throw error;
@@ -126,13 +152,14 @@ User.init(
             console.log('- Hashed password length:', hashedPassword.length);
             
             // Explicitly set the hashed password
-            user.setDataValue('password', hashedPassword);
+            user.password = hashedPassword;
           } catch (error) {
             console.error('Password hashing error:', error);
             throw error;
           }
         }
       },
+      */
     },
   }
 );

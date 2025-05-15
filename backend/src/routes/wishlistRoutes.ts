@@ -1,5 +1,6 @@
 import express from 'express';
 import { getWishlist, addToWishlist, removeFromWishlist } from '../controllers/wishlistController.js';
+import { auth } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -26,7 +27,7 @@ const router = express.Router();
  *       500:
  *         description: Server error
  */
-router.get('/', getWishlist);
+router.get('/', auth, getWishlist);
 
 /**
  * @swagger
@@ -60,7 +61,7 @@ router.get('/', getWishlist);
  *       500:
  *         description: Server error
  */
-router.post('/product/:productId', addToWishlist);
+router.post('/product/:productId', auth, addToWishlist);
 
 /**
  * @swagger
@@ -88,6 +89,6 @@ router.post('/product/:productId', addToWishlist);
  *       500:
  *         description: Server error
  */
-router.delete('/product/:productId', removeFromWishlist);
+router.delete('/product/:productId', auth, removeFromWishlist);
 
 export default router; 

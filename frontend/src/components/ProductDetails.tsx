@@ -2,10 +2,13 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import type { Product } from '../types/Product';
 import type { Review } from '../types/Review';
+import { useAuth } from '../contexts/AuthContext';
+import { API_URL } from '../config';
 
 const ProductDetails = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user, token } = useAuth();
   const [product, setProduct] = useState<Product | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
@@ -14,16 +17,16 @@ const ProductDetails = () => {
   const [newReview, setNewReview] = useState({
     rating: 5,
     comment: '',
-    userName: '',
+    userName: user ? user.name : '',
   });
 
   useEffect(() => {
     const fetchProductAndReviews = async () => {
       try {
-        const [productResponse, reviewsResponse, wishlistResponse] = await Promise.all([
-          fetch(`http://localhost:3000/api/products/${id}`),
-          fetch(`http://localhost:3000/api/reviews/product/${id}`),
-          fetch('http://localhost:3000/api/wishlist'),
+        // Always fetch product and reviews
+        const [productResponse, reviewsResponse] = await Promise.all([
+          fetch(`${API_URL}/products/${id}`),
+          fetch(`${API_URL}/reviews/product/${id}`),
         ]);
 
         if (!productResponse.ok) {
@@ -32,17 +35,26 @@ const ProductDetails = () => {
         if (!reviewsResponse.ok) {
           throw new Error('Failed to fetch reviews');
         }
-        if (!wishlistResponse.ok) {
-          throw new Error('Failed to fetch wishlist');
-        }
 
         const productData = await productResponse.json();
         const reviewsData = await reviewsResponse.json();
-        const wishlistData = await wishlistResponse.json();
         
         setProduct(productData);
         setReviews(reviewsData);
-        setIsInWishlist(wishlistData.some((item: any) => item.productId === parseInt(id!, 10)));
+        
+        // Only fetch wishlist if user is authenticated
+        if (token) {
+          const wishlistResponse = await fetch(`${API_URL}/wishlist`, {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+          
+          if (wishlistResponse.ok) {
+            const wishlistData = await wishlistResponse.json();
+            setIsInWishlist(wishlistData.some((item: any) => item.productId === parseInt(id!, 10)));
+          }
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An error occurred');
       } finally {
@@ -51,17 +63,24 @@ const ProductDetails = () => {
     };
 
     fetchProductAndReviews();
-  }, [id]);
+  }, [id, token]);
 
   const handleReviewSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await fetch(`http://localhost:3000/api/reviews/product/${id}`, {
+      // Use the user's name from auth if available
+      const reviewData = {
+        ...newReview,
+        userName: user ? user.name : newReview.userName,
+      };
+      
+      const response = await fetch(`${API_URL}/reviews/product/${id}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` }),
         },
-        body: JSON.stringify(newReview),
+        body: JSON.stringify(reviewData),
       });
 
       if (!response.ok) {
@@ -70,7 +89,11 @@ const ProductDetails = () => {
 
       const review = await response.json();
       setReviews([review, ...reviews]);
-      setNewReview({ rating: 5, comment: '', userName: '' });
+      setNewReview({ 
+        rating: 5, 
+        comment: '', 
+        userName: user ? user.name : '' 
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     }
@@ -78,9 +101,18 @@ const ProductDetails = () => {
 
   const handleWishlistToggle = async () => {
     try {
+      if (!token) {
+        // If user is not authenticated, redirect to login
+        navigate('/auth');
+        return;
+      }
+      
       const method = isInWishlist ? 'DELETE' : 'POST';
-      const response = await fetch(`http://localhost:3000/api/wishlist/product/${id}`, {
+      const response = await fetch(`${API_URL}/wishlist/product/${id}`, {
         method,
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
       });
 
       if (!response.ok) {
@@ -141,16 +173,25 @@ const ProductDetails = () => {
             <div className="mb-4">
               <span className="text-lg font-semibold">Average Rating: {averageRating}</span>
             </div>
-            <button
-              onClick={handleWishlistToggle}
-              className={`px-6 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                isInWishlist
-                  ? 'bg-red-500 text-white hover:bg-red-600'
-                  : 'bg-blue-500 text-white hover:bg-blue-600'
-              }`}
-            >
-              {isInWishlist ? 'Remove from Wishlist' : 'Add to Wishlist'}
-            </button>
+            {user ? (
+              <button
+                onClick={handleWishlistToggle}
+                className={`px-6 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  isInWishlist
+                    ? 'bg-red-500 text-white hover:bg-red-600'
+                    : 'bg-blue-500 text-white hover:bg-blue-600'
+                }`}
+              >
+                {isInWishlist ? 'Remove from Wishlist' : 'Add to Wishlist'}
+              </button>
+            ) : (
+              <button
+                onClick={() => navigate('/auth')}
+                className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                Login to Add to Wishlist
+              </button>
+            )}
           </div>
         </div>
       </div>

@@ -68,6 +68,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const register = async (email: string, password: string, name: string) => {
     try {
+      console.log('Starting registration with:', { email, name, passwordLength: password.length });
+      
       const response = await fetch(`${API_URL}/users/register`, {
         method: 'POST',
         headers: {
@@ -76,12 +78,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         body: JSON.stringify({ email, password, name }),
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Registration failed');
+      let data;
+      try {
+        data = await response.json();
+      } catch (parseError) {
+        console.error('Error parsing JSON response:', parseError);
+        throw new Error('Could not parse server response');
       }
 
+      console.log('Registration response status:', response.status);
+      console.log('Registration response:', data ? 'Has data' : 'No data');
+
+      if (!response.ok) {
+        const errorMessage = data?.message || data?.error || 'Registration failed';
+        console.error('Registration failed with message:', errorMessage);
+        throw new Error(errorMessage);
+      }
+
+      if (!data || !data.token || !data.user) {
+        console.error('Invalid registration response format:', data);
+        throw new Error('Invalid response from server');
+      }
+
+      console.log('Registration successful, setting user state');
       setUser(data.user);
       setToken(data.token);
       localStorage.setItem('token', data.token);

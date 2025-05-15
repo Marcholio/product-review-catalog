@@ -112,7 +112,7 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS
       if (process.env.NODE_ENV !== 'production') {
         const shouldForceSync = process.env.FORCE_SYNC === 'true';
         await sequelize.sync({ force: shouldForceSync });
-        console.log('Database synced');
+        console.log('Database synced' + (shouldForceSync ? ' with force' : ''));
         
         // Only seed if explicitly enabled or no products exist
         const shouldSeed = process.env.SEED_DATABASE === 'true';

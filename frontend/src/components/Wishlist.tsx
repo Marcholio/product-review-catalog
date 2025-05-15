@@ -1,9 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { WishlistItem } from '../types/Wishlist';
+import { useAuth } from '../contexts/AuthContext';
+import { API_URL } from '../config';
 
 const Wishlist = () => {
   const navigate = useNavigate();
+  const { token } = useAuth();
   const [wishlistItems, setWishlistItems] = useState<WishlistItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -11,10 +14,20 @@ const Wishlist = () => {
   useEffect(() => {
     const fetchWishlist = async () => {
       try {
-        const response = await fetch('http://localhost:3000/api/wishlist');
+        if (!token) {
+          throw new Error('Authentication required');
+        }
+
+        const response = await fetch(`${API_URL}/wishlist`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
         if (!response.ok) {
           throw new Error('Failed to fetch wishlist');
         }
+        
         const data = await response.json();
         setWishlistItems(data);
       } catch (err) {
@@ -25,12 +38,19 @@ const Wishlist = () => {
     };
 
     fetchWishlist();
-  }, []);
+  }, [token]);
 
   const handleRemoveFromWishlist = async (productId: number) => {
     try {
-      const response = await fetch(`http://localhost:3000/api/wishlist/product/${productId}`, {
+      if (!token) {
+        throw new Error('Authentication required');
+      }
+
+      const response = await fetch(`${API_URL}/wishlist/product/${productId}`, {
         method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
       });
 
       if (!response.ok) {

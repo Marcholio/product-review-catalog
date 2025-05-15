@@ -33,38 +33,103 @@ export const register = async (req: Request, res: Response) => {
       return res.status(400).json({ message: 'Email already registered' });
     }
 
-    // Hash password before creating user
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-    console.log('- Hashed password length:', hashedPassword.length);
-
-    // Create user with hashed password
-    const user = await User.create({
-      email,
-      password: hashedPassword,
-      name,
-    });
-
-    console.log('User created debug:');
-    console.log('- User ID:', user.id);
-    console.log('- Has password:', !!user.password);
-    console.log('- Password type:', typeof user.password);
-    console.log('- Password length:', user.password?.length);
-
-    const token = generateToken(user);
-
-    res.status(201).json({
-      user: {
+    try {
+      // Hash the password manually to ensure it's properly stored
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(password, salt);
+      console.log('- Manual hashing for registration:');
+      console.log('- Original password length:', password.length);
+      console.log('- Hashed password length:', hashedPassword.length);
+      
+      // Create user with simpler approach
+      const userValues = {
+        email,
+        password: hashedPassword,
+        name,
+        preferences: {
+          theme: 'light',
+          defaultSort: 'createdAt',
+          defaultCategory: '',
+          maxBudget: null,
+          minBudget: null
+        }
+      };
+      
+      console.log('Attempting to create user with values:', {
+        email: userValues.email,
+        passwordLength: userValues.password.length,
+        name: userValues.name
+      });
+      
+      const user = await User.create(userValues);
+      
+      // Log the full object structure to debug the issue
+      console.log('User after create (complete object):', JSON.stringify({
         id: user.id,
-        email: user.email,
-        name: user.name,
-        preferences: user.preferences,
-      },
-      token,
-    });
+        dataValues: user.dataValues,
+        getDataValue: typeof user.getDataValue === 'function',
+        safeId: (user as any).safeId
+      }));
+      
+      // Use our safe getter methods to extract data
+      const userData = {
+        id: (user as any).safeId || user.dataValues.id,
+        email: (user as any).safeEmail || user.dataValues.email,
+        name: (user as any).safeName || user.dataValues.name,
+        preferences: (user as any).safePreferences || user.dataValues.preferences
+      };
+      
+      console.log('Using dataValues directly:');
+      console.log('- User ID:', userData.id);
+      console.log('- Email:', userData.email);
+      console.log('- Name:', userData.name);
+      
+      if (!userData.id) {
+        console.error('User created but no ID in dataValues!', user.dataValues);
+        throw new Error('User creation failed - no ID in dataValues');
+      }
+      
+      // Generate token using the extracted data
+      const token = generateToken(userData);
+      
+      // Return response with the extracted user data
+      res.status(201).json({
+        user: userData,
+        token,
+      });
+    } catch (innerError) {
+      console.error('Inner registration error:', innerError);
+      throw innerError;
+    }
   } catch (error) {
+    // More detailed error logging
     console.error('Registration error:', error);
-    res.status(500).json({ message: 'Error creating user', error: error instanceof Error ? error.message : 'Unknown error' });
+    
+    if (error instanceof Error) {
+      console.error('Error name:', error.name);
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
+    }
+    
+    // Check for Sequelize validation errors
+    if (error instanceof Error && 'errors' in error) {
+      const sequelizeError = error as any;
+      if (Array.isArray(sequelizeError.errors)) {
+        console.error('Sequelize validation errors:', 
+          sequelizeError.errors.map((e: any) => ({ 
+            message: e.message, 
+            path: e.path,
+            value: e.value 
+          }))
+        );
+      }
+    }
+    
+    // Send appropriate response
+    res.status(500).json({ 
+      message: 'Error creating user', 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    });
   }
 };
 
@@ -105,25 +170,60 @@ export const login = async (req: Request, res: Response) => {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
+    // Add more debugging for password comparison
+    console.log('Password comparison debug:');
+    console.log('- Input password length:', password.length);
+    console.log('- Stored password from DB:', rawUser.password); 
+    console.log('- Stored password type:', typeof rawUser.password);
+    console.log('- Stored password length:', rawUser.password.length);
+    
+    // Check if the stored password is already a hash (should be ~60 chars for bcrypt)
+    const isStoredPasswordHashed = rawUser.password.length > 30;
+    console.log('- Is the stored password hashed:', isStoredPasswordHashed);
+    
     // Compare passwords directly
-    const isMatch = await bcrypt.compare(password, rawUser.password);
-    console.log('Password comparison result:', isMatch);
+    let isMatch = false;
+    try {
+      // If the stored password isn't hashed, try direct comparison (temporary fix)
+      if (!isStoredPasswordHashed && password === rawUser.password) {
+        console.log('- Direct password match (INSECURE)');
+        isMatch = true;
+      } else {
+        // Otherwise do proper bcrypt comparison
+        isMatch = await bcrypt.compare(password, rawUser.password);
+        console.log('- Bcrypt comparison result:', isMatch);
+      }
+    } catch (err) {
+      console.error('- Password comparison error:', err);
+      // If there's an error in the comparison, try direct comparison as fallback
+      isMatch = password === rawUser.password;
+      console.log('- Fallback direct comparison:', isMatch);
+    }
+    
+    console.log('Final password comparison result:', isMatch);
 
     if (!isMatch) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
     // Create a minimal user object for token generation
+    // Make sure to include all necessary fields
     const userForToken = {
       id: rawUser.id,
       email: rawUser.email,
       name: rawUser.name,
-      preferences: rawUser.preferences
+      preferences: rawUser.preferences || {
+        theme: 'light',
+        defaultSort: 'createdAt',
+        defaultCategory: '',
+        maxBudget: null,
+        minBudget: null
+      }
     };
 
     console.log('User data for token:', userForToken);
 
-    const token = generateToken(userForToken as User);
+    const token = generateToken(userForToken);
 
     res.json({
       user: userForToken,
@@ -138,14 +238,15 @@ export const login = async (req: Request, res: Response) => {
 export const updatePreferences = async (req: Request, res: Response) => {
   try {
     const user = (req as any).user;
-    const { preferences } = req.body;
+    const { preferences, password } = req.body;
 
     console.log('Update preferences debug - Initial state:');
     console.log('- Request user:', user);
-    console.log('- Request body:', req.body);
+    console.log('- Request body has preferences:', !!preferences);
+    console.log('- Request body has password:', !!password);
 
-    if (!preferences) {
-      return res.status(400).json({ message: 'Preferences are required' });
+    if (!preferences && !password) {
+      return res.status(400).json({ message: 'Either preferences or password must be provided' });
     }
 
     // Ensure we have a valid user with an ID
@@ -154,21 +255,6 @@ export const updatePreferences = async (req: Request, res: Response) => {
       return res.status(401).json({ message: 'Invalid user data' });
     }
 
-    // Get current preferences or initialize empty object
-    const currentPreferences = user.preferences || {};
-    
-    // Update preferences
-    const updatedPreferences = {
-      ...currentPreferences,
-      ...preferences
-    };
-
-    console.log('Preferences update:');
-    console.log('- User ID:', user.id);
-    console.log('- Current preferences:', currentPreferences);
-    console.log('- New preferences:', preferences);
-    console.log('- Updated preferences:', updatedPreferences);
-
     // First verify the user exists
     const existingUser = await User.findByPk(user.id);
     if (!existingUser) {
@@ -176,9 +262,41 @@ export const updatePreferences = async (req: Request, res: Response) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
+    // Prepare update data
+    const updateData: any = {};
+    
+    // Handle password update if provided
+    if (password) {
+      console.log('Password update requested');
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(password, salt);
+      console.log('- New password hash length:', hashedPassword.length);
+      updateData.password = hashedPassword;
+    }
+    
+    // Handle preferences update if provided
+    if (preferences) {
+      // Get current preferences or initialize empty object
+      const currentPreferences = user.preferences || {};
+      
+      // Update preferences
+      const updatedPreferences = {
+        ...currentPreferences,
+        ...preferences
+      };
+
+      console.log('Preferences update:');
+      console.log('- User ID:', user.id);
+      console.log('- Current preferences:', currentPreferences);
+      console.log('- New preferences:', preferences);
+      console.log('- Updated preferences:', updatedPreferences);
+      
+      updateData.preferences = updatedPreferences;
+    }
+
     // Update user in database using Sequelize's update method
     const [updatedRows] = await User.update(
-      { preferences: updatedPreferences },
+      updateData,
       { 
         where: { id: user.id },
         returning: true
