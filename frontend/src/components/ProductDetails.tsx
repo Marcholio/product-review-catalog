@@ -296,12 +296,12 @@ const ProductDetails = () => {
             <div className="mb-6">
               <div className="flex items-center mb-2">
                 <span className="text-lg font-semibold text-gray-900 mr-2">Rating:</span>
-                <div className="flex items-center bg-amber-50 px-3 py-1 rounded-lg">
-                  <FiStar className="text-amber-400 mr-1" />
-                  <span className="font-bold">
+                <div className="flex items-center bg-amber-100 px-3 py-1 rounded-lg border border-amber-200 shadow-sm">
+                  <FiStar className="text-amber-500 mr-1" />
+                  <span className="font-bold text-amber-700">
                     {averageRating}
                   </span>
-                  <span className="text-gray-500 ml-1">
+                  <span className="text-amber-800 ml-1">
                     ({reviews.length} {reviews.length === 1 ? 'review' : 'reviews'})
                   </span>
                 </div>
@@ -347,9 +347,15 @@ const ProductDetails = () => {
               <h3 className="text-xl font-semibold mb-4 text-gray-900">Rating Summary</h3>
               
               <div className="flex items-center mb-4">
-                <span className="text-4xl font-bold text-blue-600 mr-3">{averageRating}</span>
+                <span className="text-4xl font-bold text-blue-600 mr-3">
+                  {typeof averageRating === 'string' && averageRating === 'No ratings yet' ? 'N/A' : averageRating}
+                </span>
                 <div>
-                  <RatingStars rating={Number(averageRating)} size="lg" />
+                  {typeof averageRating === 'string' && averageRating === 'No ratings yet' ? (
+                    <div className="text-gray-400 text-lg">No ratings</div>
+                  ) : (
+                    <RatingStars rating={Number(averageRating)} size="lg" />
+                  )}
                   <p className="text-gray-500 text-sm mt-1">
                     Based on {reviews.length} {reviews.length === 1 ? 'review' : 'reviews'}
                   </p>
