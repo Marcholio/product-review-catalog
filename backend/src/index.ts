@@ -5,9 +5,11 @@ import sequelize from './config/database.js';
 import productRoutes from './routes/productRoutes.js';
 import reviewRoutes from './routes/reviewRoutes.js';
 import wishlistRoutes from './routes/wishlistRoutes.js';
+import userRoutes from './routes/userRoutes.js';
 import Product from './models/Product.js';
 import Review from './models/Review.js';
 import Wishlist from './models/Wishlist.js';
+import User from './models/User.js';
 
 dotenv.config();
 
@@ -22,6 +24,7 @@ app.use(express.json());
 app.use('/api/products', productRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/wishlist', wishlistRoutes);
+app.use('/api/users', userRoutes);
 
 // Basic route for testing
 app.get('/api/health', (_req: Request, res: Response) => {
@@ -78,12 +81,16 @@ const startServer = async (): Promise<void> => {
     
     // Sync database (in development)
     if (process.env.NODE_ENV !== 'production') {
-      // Force sync to clear existing data
-      await sequelize.sync({ force: true });
-      console.log('Database synced and cleared');
+      // Sync without force to preserve data
+      await sequelize.sync();
+      console.log('Database synced');
       
-      // Always seed database in development
-      await seedDatabase();
+      // Only seed if no products exist
+      const productCount = await Product.count();
+      if (productCount === 0) {
+        await seedDatabase();
+        console.log('Sample products added to database');
+      }
     }
 
     app.listen(port, () => {
