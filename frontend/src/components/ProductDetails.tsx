@@ -427,10 +427,11 @@ const ProductDetails = () => {
                       type="text"
                       value={newReview.userName}
                       onChange={(e) => setNewReview({ ...newReview, userName: e.target.value })}
-                      className="w-full px-4 py-3 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                      className="w-full px-4 py-3 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900 placeholder-gray-500"
                       required
                       disabled={!!user}
                       placeholder="Enter your name"
+                      style={{ WebkitTextFillColor: user ? 'gray' : 'inherit' }}
                     />
                     <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                       <FiUser className="text-gray-400" />
@@ -444,7 +445,7 @@ const ProductDetails = () => {
                 <textarea
                   value={newReview.comment}
                   onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900 placeholder-gray-500"
                   rows={4}
                   required
                   placeholder="Share your experience with this product..."
