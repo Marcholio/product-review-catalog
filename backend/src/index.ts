@@ -4,8 +4,10 @@ import dotenv from 'dotenv';
 import sequelize from './config/database.js';
 import productRoutes from './routes/productRoutes.js';
 import reviewRoutes from './routes/reviewRoutes.js';
+import wishlistRoutes from './routes/wishlistRoutes.js';
 import Product from './models/Product.js';
 import Review from './models/Review.js';
+import Wishlist from './models/Wishlist.js';
 
 dotenv.config();
 
@@ -19,6 +21,7 @@ app.use(express.json());
 // Routes
 app.use('/api/products', productRoutes);
 app.use('/api/reviews', reviewRoutes);
+app.use('/api/wishlist', wishlistRoutes);
 
 // Basic route for testing
 app.get('/api/health', (_req: Request, res: Response) => {
@@ -39,41 +42,29 @@ app.use((err: ErrorWithStack, req: Request, res: Response, _next: NextFunction) 
 });
 
 // Seed database with sample products
+const generateRandomProduct = (index: number) => {
+  const categories = ['Electronics', 'Audio', 'Wearables', 'Computers', 'Gaming', 'Home', 'Kitchen', 'Sports', 'Fashion', 'Books'];
+  const adjectives = ['Smart', 'Pro', 'Ultra', 'Premium', 'Elite', 'Basic', 'Advanced', 'Deluxe', 'Essential', 'Professional'];
+  const nouns = ['Device', 'Gadget', 'Tool', 'System', 'Kit', 'Set', 'Package', 'Bundle', 'Collection', 'Suite'];
+  
+  const category = categories[Math.floor(Math.random() * categories.length)];
+  const adjective = adjectives[Math.floor(Math.random() * adjectives.length)];
+  const noun = nouns[Math.floor(Math.random() * nouns.length)];
+  
+  return {
+    name: `${adjective} ${noun} ${index + 1}`,
+    description: `High-quality ${category.toLowerCase()} product with advanced features and modern design. Perfect for everyday use.`,
+    price: Number((Math.random() * 2000 + 50).toFixed(2)),
+    imageUrl: `https://picsum.photos/seed/${index}/400/300`,
+    category: category
+  };
+};
+
 const seedDatabase = async () => {
   try {
-    const sampleProducts = [
-      {
-        name: 'Smartphone X',
-        description: 'Latest smartphone with advanced features',
-        price: 999.99,
-        imageUrl: 'https://picsum.photos/400/300',
-        category: 'Electronics'
-      },
-      {
-        name: 'Laptop Pro',
-        description: 'High-performance laptop for professionals',
-        price: 1499.99,
-        imageUrl: 'https://picsum.photos/400/300',
-        category: 'Electronics'
-      },
-      {
-        name: 'Wireless Headphones',
-        description: 'Noise-cancelling wireless headphones',
-        price: 199.99,
-        imageUrl: 'https://picsum.photos/400/300',
-        category: 'Audio'
-      },
-      {
-        name: 'Smart Watch',
-        description: 'Fitness tracker and smart watch',
-        price: 299.99,
-        imageUrl: 'https://picsum.photos/400/300',
-        category: 'Wearables'
-      }
-    ];
-
-    await Product.bulkCreate(sampleProducts);
-    console.log('Sample products added to database');
+    const products = Array.from({ length: 1000 }, (_, index) => generateRandomProduct(index));
+    await Product.bulkCreate(products);
+    console.log('1000 sample products added to database');
   } catch (error) {
     console.error('Error seeding database:', error);
   }
