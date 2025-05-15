@@ -28,9 +28,14 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS
   app.use(helmet());
 
   // Rate limiting - apply different limits to different routes
+  // Order matters: specific routes first, then catch-all
   app.use('/api/products', createRateLimiter('productSearch')); // More lenient for product search
   app.use('/api/auth', createRateLimiter('auth')); // Stricter for auth
-  app.use('/api/', createRateLimiter('default')); // Default for other routes
+  
+  // Development mode can disable rate limits completely
+  if (process.env.NODE_ENV !== 'development' || process.env.ENABLE_RATE_LIMITS === 'true') {
+    app.use('/api/', createRateLimiter('default')); // Default for other routes
+  }
 
   // CORS configuration
   app.use(cors(securityConfig.cors));

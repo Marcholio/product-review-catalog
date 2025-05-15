@@ -21,21 +21,30 @@ export const securityConfig = {
   rateLimit: {
     // Default rate limit for most endpoints
     default: {
-      windowMs: 15 * 60 * 1000, // 15 minutes
-      max: 100, // Limit each IP to 100 requests per windowMs
-      message: 'Too many requests from this IP, please try again later.'
+      windowMs: 1 * 60 * 1000, // 1 minute
+      max: 300, // Limit each IP to 300 requests per minute (5 per second)
+      message: 'Too many requests from this IP, please try again later.',
+      standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+      legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+      skipSuccessfulRequests: process.env.NODE_ENV === 'development', // In development, don't count successful requests
     },
     // More lenient rate limit for product search
     productSearch: {
       windowMs: 1 * 60 * 1000, // 1 minute
-      max: 60, // 60 requests per minute (1 per second)
-      message: 'Too many search requests, please try again later.'
+      max: 180, // 180 requests per minute (3 per second)
+      message: 'Too many search requests, please try again later.',
+      standardHeaders: true,
+      legacyHeaders: false,
+      skipSuccessfulRequests: process.env.NODE_ENV === 'development',
     },
     // Stricter rate limit for authentication
     auth: {
-      windowMs: 15 * 60 * 1000, // 15 minutes
-      max: 20, // 20 attempts per 15 minutes
-      message: 'Too many authentication attempts, please try again later.'
+      windowMs: 5 * 60 * 1000, // 5 minutes
+      max: 60, // 60 attempts per 5 minutes
+      message: 'Too many authentication attempts, please try again later.',
+      standardHeaders: true,
+      legacyHeaders: false,
+      skipSuccessfulRequests: false, // Always count auth attempts, even in development
     }
   }
 };
