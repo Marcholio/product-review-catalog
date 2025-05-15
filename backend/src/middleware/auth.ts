@@ -1,8 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
+import jwt, { Secret, SignOptions, Algorithm } from 'jsonwebtoken';
 import User from '../models/User.js';
 import sequelize from '../config/database.js';
 import { QueryTypes } from 'sequelize';
+import { securityConfig } from '../config/security.js';
 
 interface AuthRequest extends Request {
   user?: any;
@@ -96,16 +97,25 @@ export const generateToken = (user: User): string => {
     throw new Error('Invalid user object for token generation');
   }
 
+  if (!securityConfig.jwt.secret) {
+    throw new Error('JWT_SECRET environment variable is not set');
+  }
+
   const payload = {
     id: user.id,
     email: user.email
   };
 
-  console.log('Generating token with payload:', payload);
+  const options: SignOptions = {
+    expiresIn: securityConfig.jwt.expiresIn as any,
+    algorithm: securityConfig.jwt.algorithm as Algorithm,
+    audience: securityConfig.jwt.audience,
+    issuer: securityConfig.jwt.issuer
+  };
 
   return jwt.sign(
     payload,
-    process.env.JWT_SECRET || 'your-secret-key',
-    { expiresIn: '7d' }
+    securityConfig.jwt.secret as Secret,
+    options
   );
 }; 
