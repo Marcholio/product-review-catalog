@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import type { Product } from '../types/Product';
 
 const ProductList = () => {
+  const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -38,7 +40,11 @@ const ProductList = () => {
       <h1 className="text-3xl font-bold mb-8">Products</h1>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {products.map((product) => (
-          <div key={product.id} className="bg-white rounded-lg shadow-md overflow-hidden">
+          <div
+            key={product.id}
+            className="bg-white rounded-lg shadow-md overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
+            onClick={() => navigate(`/products/${product.id}`)}
+          >
             <img
               src={product.imageUrl}
               alt={product.name}

@@ -1,10 +1,15 @@
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import ProductList from './components/ProductList';
+import ProductDetails from './components/ProductDetails';
 
 function App() {
   return (
-    <div className="min-h-screen bg-gray-100">
-      <ProductList />
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/" element={<ProductList />} />
+        <Route path="/products/:id" element={<ProductDetails />} />
+      </Routes>
+    </Router>
   );
 }
 
