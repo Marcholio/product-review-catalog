@@ -47,6 +47,7 @@ const ProductList: React.FC = () => {
     user?.preferences?.minBudget || 0,
     user?.preferences?.maxBudget || MAX_PRICE
   ]);
+  const [debouncedBudgetRange, setDebouncedBudgetRange] = useState<[number, number]>(budgetRange);
   const [categories, setCategories] = useState<string[]>([]);
   const [dragging, setDragging] = useState<null | 'min' | 'max'>(null);
   const navigate = useNavigate();
@@ -61,11 +62,21 @@ const ProductList: React.FC = () => {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
+  // Debounce budget range changes
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedBudgetRange(budgetRange);
+      setCurrentPage(1); // Reset to first page when budget changes
+    }, 500); // Longer debounce for slider to prevent too many API calls
+
+    return () => clearTimeout(timer);
+  }, [budgetRange]);
+
   // Use debounced values for API calls
   useEffect(() => {
     fetchProducts();
     fetchCategories();
-  }, [currentPage, sortBy, selectedCategory, budgetRange, debouncedSearchQuery]);
+  }, [currentPage, sortBy, selectedCategory, debouncedBudgetRange, debouncedSearchQuery]);
 
   const fetchProducts = async () => {
     try {
@@ -73,8 +84,8 @@ const ProductList: React.FC = () => {
         page: currentPage.toString(),
         sort: sortBy,
         ...(selectedCategory && { category: selectedCategory }),
-        ...(budgetRange[0] > 0 && { minBudget: budgetRange[0].toString() }),
-        ...(budgetRange[1] < MAX && { maxBudget: budgetRange[1].toString() }),
+        ...(debouncedBudgetRange[0] > 0 && { minBudget: debouncedBudgetRange[0].toString() }),
+        ...(debouncedBudgetRange[1] < MAX && { maxBudget: debouncedBudgetRange[1].toString() }),
         ...(debouncedSearchQuery.trim() && { search: debouncedSearchQuery.trim() })
       });
 
