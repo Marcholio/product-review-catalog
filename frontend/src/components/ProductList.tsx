@@ -1,7 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import type { Product } from '../types/index.d';
 import { API_URL } from '../config';
+
+const ProductSkeleton: React.FC = () => (
+  <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden animate-pulse">
+    <div className="w-full h-48 bg-gray-200 dark:bg-gray-700" />
+    <div className="p-4">
+      <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-2" />
+      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full mb-2" />
+      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mb-2" />
+      <div className="flex justify-between items-center">
+        <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-1/4" />
+        <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-1/4" />
+      </div>
+    </div>
+  </div>
+);
 
 const ProductList: React.FC = () => {
   const { user, updatePreferences, token } = useAuth();
@@ -12,28 +27,42 @@ const ProductList: React.FC = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [sortBy, setSortBy] = useState(user?.preferences?.defaultSort || 'createdAt');
   const [selectedCategory, setSelectedCategory] = useState(user?.preferences?.defaultCategory || '');
-  const [maxBudget, setMaxBudget] = useState<number | ''>(user?.preferences?.maxBudget || '');
+  const [maxBudget, setMaxBudget] = useState<string>(user?.preferences?.maxBudget?.toString() || '');
   const [categories, setCategories] = useState<string[]>([]);
+  const [debouncedBudget, setDebouncedBudget] = useState<string>(maxBudget);
+  const [isSearching, setIsSearching] = useState(false);
 
+  // Debounce the budget value
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedBudget(maxBudget);
+    }, 500); // 500ms delay
+
+    return () => clearTimeout(timer);
+  }, [maxBudget]);
+
+  // Use debouncedBudget for API calls
   useEffect(() => {
     fetchProducts();
     fetchCategories();
-  }, [currentPage, sortBy, selectedCategory, maxBudget]);
+  }, [currentPage, sortBy, selectedCategory, debouncedBudget]);
 
   const fetchProducts = async () => {
     try {
-      setLoading(true);
+      setIsSearching(true);
       const queryParams = new URLSearchParams({
         page: currentPage.toString(),
         sort: sortBy,
         ...(selectedCategory && { category: selectedCategory }),
-        ...(maxBudget && { maxBudget: maxBudget.toString() })
+        ...(debouncedBudget && { maxBudget: debouncedBudget })
       });
 
       const response = await fetch(`${API_URL}/products?${queryParams}`);
       if (!response.ok) throw new Error('Failed to fetch products');
       
       const data = await response.json();
+      // Add a small delay to make the transition smoother
+      await new Promise(resolve => setTimeout(resolve, 300));
       setProducts(data.products);
       setTotalPages(data.totalPages);
       setError(null);
@@ -41,6 +70,7 @@ const ProductList: React.FC = () => {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setLoading(false);
+      setIsSearching(false);
     }
   };
 
@@ -83,11 +113,33 @@ const ProductList: React.FC = () => {
     }
   };
 
-  const handleBudgetChange = async (budget: number | '') => {
-    setMaxBudget(budget);
-    if (user && token) {
+  const handleBudgetChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    // Allow empty value or numbers only
+    if (value === '' || /^\d*$/.test(value)) {
+      setMaxBudget(value);
+    }
+  };
+
+  const handleBudgetBlur = async () => {
+    if (maxBudget) {
+      const numericValue = parseInt(maxBudget, 10);
+      if (!isNaN(numericValue)) {
+        setMaxBudget(numericValue.toString());
+        if (user && token) {
+          try {
+            await updatePreferences({ maxBudget: numericValue });
+          } catch (err) {
+            console.error('Error updating budget preference:', err);
+            if (err instanceof Error && err.message !== 'Not authenticated') {
+              setError(err.message);
+            }
+          }
+        }
+      }
+    } else if (user && token) {
       try {
-        await updatePreferences({ maxBudget: budget === '' ? undefined : budget });
+        await updatePreferences({ maxBudget: undefined });
       } catch (err) {
         console.error('Error updating budget preference:', err);
         if (err instanceof Error && err.message !== 'Not authenticated') {
@@ -97,7 +149,24 @@ const ProductList: React.FC = () => {
     }
   };
 
-  if (loading) return <div className="text-center py-8">Loading...</div>;
+  const handleBudgetKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleBudgetBlur();
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {[...Array(8)].map((_, index) => (
+            <ProductSkeleton key={index} />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   if (error) return <div className="text-center py-8 text-red-500">{error}</div>;
 
   return (
@@ -107,7 +176,7 @@ const ProductList: React.FC = () => {
           <select
             value={sortBy}
             onChange={(e) => handleSortChange(e.target.value)}
-            className="px-4 py-2 border rounded-lg bg-white dark:bg-gray-800"
+            className="px-4 py-2 border rounded-lg bg-white dark:bg-gray-800 transition-colors duration-200"
           >
             <option value="createdAt">Newest</option>
             <option value="price">Price: Low to High</option>
@@ -118,7 +187,7 @@ const ProductList: React.FC = () => {
           <select
             value={selectedCategory}
             onChange={(e) => handleCategoryChange(e.target.value)}
-            className="px-4 py-2 border rounded-lg bg-white dark:bg-gray-800"
+            className="px-4 py-2 border rounded-lg bg-white dark:bg-gray-800 transition-colors duration-200"
           >
             <option value="">All Categories</option>
             {categories.map((category) => (
@@ -128,46 +197,64 @@ const ProductList: React.FC = () => {
             ))}
           </select>
 
-          <div className="flex items-center gap-2">
-            <label htmlFor="budget" className="whitespace-nowrap">Max Budget:</label>
-            <input
-              type="number"
-              id="budget"
-              value={maxBudget}
-              onChange={(e) => handleBudgetChange(e.target.value ? Number(e.target.value) : '')}
-              placeholder="No limit"
-              min="0"
-              className="w-32 px-4 py-2 border rounded-lg bg-white dark:bg-gray-800"
-            />
+          <div className="relative">
+            <label htmlFor="budget" className="block text-sm font-medium text-gray-700 mb-1">
+              Max Budget
+            </label>
+            <div className="relative">
+              <input
+                type="text"
+                id="budget"
+                value={maxBudget}
+                onChange={handleBudgetChange}
+                onBlur={handleBudgetBlur}
+                onKeyDown={handleBudgetKeyDown}
+                placeholder="No limit"
+                className="w-32 px-4 py-2 border rounded-lg bg-white dark:bg-gray-800 transition-colors duration-200"
+              />
+              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                <span className="text-gray-500">€</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {products.map((product) => (
-          <div key={product.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
-            {product.imageUrl && (
-              <img
-                src={product.imageUrl}
-                alt={product.name}
-                className="w-full h-48 object-cover"
-              />
-            )}
-            <div className="p-4">
-              <h3 className="text-lg font-semibold mb-2">{product.name}</h3>
-              <p className="text-gray-600 dark:text-gray-300 mb-2">{product.description}</p>
-              <div className="flex justify-between items-center">
-                <span className="text-lg font-bold">
-                  ${Number(product.price).toFixed(2)}
-                </span>
-                <div className="flex items-center">
-                  <span className="text-yellow-400">★</span>
-                  <span className="ml-1">{Number(product.rating).toFixed(1)}</span>
+      <div className="relative">
+        {isSearching && (
+          <div className="absolute inset-0 bg-white dark:bg-gray-900 bg-opacity-50 dark:bg-opacity-50 z-10 flex items-center justify-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+          </div>
+        )}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 transition-opacity duration-300">
+          {products.map((product) => (
+            <div 
+              key={product.id} 
+              className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden transform transition-all duration-300 hover:scale-105"
+            >
+              {product.imageUrl && (
+                <img
+                  src={product.imageUrl}
+                  alt={product.name}
+                  className="w-full h-48 object-cover"
+                />
+              )}
+              <div className="p-4">
+                <h3 className="text-lg font-semibold mb-2">{product.name}</h3>
+                <p className="text-gray-600 dark:text-gray-300 mb-2">{product.description}</p>
+                <div className="flex justify-between items-center">
+                  <span className="text-lg font-bold">
+                    ${Number(product.price).toFixed(2)}
+                  </span>
+                  <div className="flex items-center">
+                    <span className="text-yellow-400">★</span>
+                    <span className="ml-1">{Number(product.rating).toFixed(1)}</span>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
 
       {totalPages > 1 && (
@@ -175,7 +262,7 @@ const ProductList: React.FC = () => {
           <button
             onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
             disabled={currentPage === 1}
-            className="px-4 py-2 border rounded-lg disabled:opacity-50"
+            className="px-4 py-2 border rounded-lg disabled:opacity-50 transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-gray-700"
           >
             Previous
           </button>
@@ -185,7 +272,7 @@ const ProductList: React.FC = () => {
           <button
             onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
             disabled={currentPage === totalPages}
-            className="px-4 py-2 border rounded-lg disabled:opacity-50"
+            className="px-4 py-2 border rounded-lg disabled:opacity-50 transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-gray-700"
           >
             Next
           </button>
