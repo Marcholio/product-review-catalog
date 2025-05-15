@@ -25,12 +25,11 @@ export const getAllProducts = async (req: Request, res: Response) => {
     const offset = (Number(page) - 1) * Number(limit);
     let order: Order = [['createdAt', 'DESC']];
     
+    // Handle different sort options
     if (sort === 'price') {
       order = [['price', 'ASC']];
     } else if (sort === 'rating') {
       order = [['rating', 'DESC']];
-    } else if (sort === 'popularity') {
-      order = [[literal('reviewCount'), 'DESC']];
     }
 
     const where: any = {};
@@ -50,46 +49,83 @@ export const getAllProducts = async (req: Request, res: Response) => {
       ];
     }
 
-    const { count, rows: products } = await Product.findAndCountAll({
-      where,
-      order,
-      limit: Number(limit),
-      offset,
-      attributes: [
-        'id',
-        'name',
-        'description',
-        'price',
-        'category',
-        'rating',
-        'imageUrl',
-        'createdAt',
-        'updatedAt',
-        [
-          literal(`(
-            SELECT COUNT(*)
-            FROM "Reviews"
-            WHERE "Reviews"."productId" = "Product"."id"
-          )`),
-          'reviewCount'
-        ]
-      ],
-      include: [{
-        model: Review,
-        attributes: []
-      }],
-      group: [
-        'Product.id',
-        'Product.name',
-        'Product.description',
-        'Product.price',
-        'Product.category',
-        'Product.rating',
-        'Product.imageUrl',
-        'Product.createdAt',
-        'Product.updatedAt'
+    // Base query attributes with review count
+    const attributes = [
+      'id',
+      'name',
+      'description',
+      'price',
+      'category',
+      'rating',
+      'imageUrl',
+      'createdAt',
+      'updatedAt',
+      [
+        literal(`(
+          SELECT COUNT(*)
+          FROM "Reviews"
+          WHERE "Reviews"."productId" = "Product"."id"
+        )`),
+        'reviewCount'
       ]
-    });
+    ];
+
+    // Base group by clause - needed for aggregate functions
+    const groupBy = [
+      'Product.id',
+      'Product.name',
+      'Product.description',
+      'Product.price',
+      'Product.category',
+      'Product.rating',
+      'Product.imageUrl',
+      'Product.createdAt',
+      'Product.updatedAt'
+    ];
+
+    let products;
+    let count;
+
+    // Special handling for popularity sort
+    if (sort === 'popularity') {
+      // Use a different approach for sorting by popularity
+      // The key issue is that the 'reviewCount' is an alias in the outer query
+      // So we need to adjust the SQL to properly order by it
+      const result = await Product.findAndCountAll({
+        where,
+        attributes: attributes,
+        include: [{
+          model: Review,
+          attributes: [],
+          required: false // Use LEFT JOIN to include products with no reviews
+        }],
+        group: groupBy,
+        limit: Number(limit),
+        offset,
+        order: [[literal('COUNT(DISTINCT "Reviews"."id")'), 'DESC']], // Use DISTINCT to avoid duplicate counting
+        subQuery: false
+      });
+      
+      products = result.rows;
+      count = result.count;
+    } else {
+      // Standard query for other sort options
+      const result = await Product.findAndCountAll({
+        where,
+        order,
+        limit: Number(limit),
+        offset,
+        attributes: attributes,
+        include: [{
+          model: Review,
+          attributes: []
+        }],
+        group: groupBy
+      });
+      
+      products = result.rows;
+      count = result.count;
+    }
 
     // Ensure numeric values are properly typed
     const formattedProducts = products.map(product => {
@@ -98,19 +134,33 @@ export const getAllProducts = async (req: Request, res: Response) => {
         ...productData,
         price: Number(productData.price),
         rating: Number(productData.rating),
-        reviewCount: Number((product as any).getDataValue('reviewCount'))
+        // Handle reviewCount correctly
+        reviewCount: productData.reviewCount !== undefined 
+          ? Number(productData.reviewCount) 
+          : Number((product as any).getDataValue('reviewCount') || 0)
       };
     });
 
+    // Calculate total pages and total products correctly
+    const totalCount = Array.isArray(count) ? count.length : (typeof count === 'number' ? count : 0);
+
     res.json({
       products: formattedProducts,
-      totalPages: Math.ceil(count.length / Number(limit)),
+      totalPages: Math.ceil(totalCount / Number(limit)),
       currentPage: Number(page),
-      totalProducts: count.length
+      totalProducts: totalCount
     });
   } catch (error) {
     console.error('Error fetching products:', error);
-    res.status(500).json({ message: 'Error fetching products' });
+    // Provide a more detailed error message in development
+    const errorDetails = process.env.NODE_ENV === 'development' 
+      ? { error: error instanceof Error ? error.message : JSON.stringify(error), stack: error instanceof Error ? error.stack : undefined }
+      : {};
+    
+    res.status(500).json({ 
+      message: 'Error fetching products',
+      ...errorDetails
+    });
   }
 };
 

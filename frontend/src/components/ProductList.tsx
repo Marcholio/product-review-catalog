@@ -94,18 +94,46 @@ const ProductList: React.FC = () => {
         ...(debouncedSearchQuery.trim() && { search: debouncedSearchQuery.trim() })
       });
 
-      console.log('Search query:', debouncedSearchQuery); // Debug log
-      console.log('API URL:', `${API_URL}/products?${queryParams}`); // Debug log
+      // Better debug logging
+      console.log('Fetching products with params:', {
+        page: currentPage,
+        sort: sortBy,
+        category: selectedCategory || 'All',
+        budgetRange: debouncedBudgetRange,
+        searchQuery: debouncedSearchQuery
+      });
+      console.log('API URL:', `${API_URL}/products?${queryParams}`);
 
       const response = await fetch(`${API_URL}/products?${queryParams}`);
-      if (!response.ok) throw new Error('Failed to fetch products');
+      
+      if (!response.ok) {
+        // Try to parse error response if possible
+        let errorMessage = 'Failed to fetch products';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorMessage;
+          console.error('API error details:', errorData);
+        } catch (e) {
+          // If we can't parse the JSON, just use the status text
+          errorMessage = `Failed to fetch products: ${response.status} ${response.statusText}`;
+        }
+        throw new Error(errorMessage);
+      }
       
       const data = await response.json();
+      console.log('Products fetched successfully:', {
+        count: data.products.length,
+        totalPages: data.totalPages,
+        totalProducts: data.totalProducts
+      });
+      
+      // Small delay to prevent UI flickering
       await new Promise(resolve => setTimeout(resolve, 300));
       setProducts(data.products);
       setTotalPages(data.totalPages);
       setError(null);
     } catch (err) {
+      console.error('Error in fetchProducts:', err);
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setLoading(false);
@@ -432,6 +460,12 @@ const ProductList: React.FC = () => {
                         <span className="ml-1 text-gray-700 font-semibold text-sm">
                           {Number(product.rating).toFixed(1)}
                         </span>
+                        {/* Display review count if available */}
+                        {product.reviewCount !== undefined && (
+                          <span className="ml-2 text-gray-500 text-xs">
+                            ({product.reviewCount} {product.reviewCount === 1 ? 'review' : 'reviews'})
+                          </span>
+                        )}
                       </div>
                     </div>
                     <p className="text-gray-600 text-sm mb-4 line-clamp-2">
@@ -492,6 +526,12 @@ const ProductList: React.FC = () => {
                       <span className="ml-1 text-gray-600 text-xs font-medium">
                         {Number(product.rating).toFixed(1)}
                       </span>
+                      {/* Display review count if available */}
+                      {product.reviewCount !== undefined && (
+                        <span className="ml-2 text-gray-500 text-xs">
+                          ({product.reviewCount} {product.reviewCount === 1 ? 'review' : 'reviews'})
+                        </span>
+                      )}
                     </div>
                   </div>
                   <p className="text-gray-500 text-sm mb-2 line-clamp-2 h-10">
