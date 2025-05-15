@@ -46,9 +46,8 @@ async function startServer(): Promise<void> {
   }
 }
 
-// Start the server if this file is run directly
-if (require.main === module) {
-  startServer();
-}
+// Start the server
+// In ESM, we don't have require.main, so we just run the server directly
+startServer();
 
 export default startServer;
