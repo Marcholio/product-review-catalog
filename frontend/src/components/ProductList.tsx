@@ -517,7 +517,7 @@ const ProductList: React.FC = () => {
           <button
             onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
             disabled={currentPage === 1}
-            className="p-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+            className="p-2 rounded-lg border border-gray-200 bg-white text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
           >
             <IconWrapper icon={FiChevronLeft} size={20} />
           </button>
@@ -545,7 +545,7 @@ const ProductList: React.FC = () => {
                   className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm font-medium transition-colors
                     ${isCurrentPage 
                       ? 'bg-blue-500 text-white' 
-                      : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                      : 'bg-white text-gray-700 hover:bg-gray-50'
                     }`}
                 >
                   {pageNumber}
@@ -557,7 +557,7 @@ const ProductList: React.FC = () => {
           <button
             onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
             disabled={currentPage === totalPages}
-            className="p-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+            className="p-2 rounded-lg border border-gray-200 bg-white text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
           >
             <IconWrapper icon={FiChevronRight} size={20} />
           </button>

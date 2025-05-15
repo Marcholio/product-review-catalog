@@ -254,7 +254,7 @@ const ProductDetails = () => {
     <div className="container mx-auto px-4 py-8">
       <button
         onClick={() => navigate(-1)}
-        className="mb-6 text-blue-600 hover:text-blue-800 transition-colors duration-200 flex items-center font-medium"
+        className="mb-6 text-blue-600 hover:text-blue-800 transition-colors duration-200 flex items-center font-medium bg-white px-4 py-2 rounded-lg shadow-sm border border-gray-100"
       >
         <FiArrowLeft className="mr-2" />
         Back to Products
@@ -360,7 +360,7 @@ const ProductDetails = () => {
                 {[5, 4, 3, 2, 1].map(rating => (
                   <div key={rating} className="flex items-center">
                     <div className="w-12 text-sm text-gray-700 font-medium">{rating} stars</div>
-                    <div className="w-full bg-gray-200 rounded-full h-2.5 mx-2 dark:bg-gray-700">
+                    <div className="w-full bg-gray-200 rounded-full h-2.5 mx-2">
                       <div 
                         className="bg-blue-600 h-2.5 rounded-full" 
                         style={{ width: `${calculateRatingPercentage(rating)}%` }}
@@ -395,7 +395,7 @@ const ProductDetails = () => {
                           onClick={() => setNewReview({ ...newReview, rating: star })}
                           onMouseEnter={() => setHoverRating(star)}
                           onMouseLeave={() => setHoverRating(null)}
-                          className="text-3xl focus:outline-none transition-all duration-200 hover:scale-110 transform p-1"
+                          className="text-3xl focus:outline-none transition-all duration-200 hover:scale-110 transform p-1 bg-white hover:bg-gray-50 rounded-full"
                           aria-label={`Rate ${star} stars`}
                         >
                           <span className={
@@ -412,7 +412,7 @@ const ProductDetails = () => {
                         </button>
                       ))}
                     </div>
-                    <div className="ml-3 px-3 py-1 bg-gray-100 rounded-lg">
+                    <div className="ml-3 px-3 py-1 bg-white border border-gray-200 rounded-lg shadow-sm">
                       <span className="font-medium text-gray-700">
                         {newReview.rating} {newReview.rating === 1 ? 'Star' : 'Stars'}
                       </span>
@@ -427,7 +427,7 @@ const ProductDetails = () => {
                       type="text"
                       value={newReview.userName}
                       onChange={(e) => setNewReview({ ...newReview, userName: e.target.value })}
-                      className="w-full px-4 py-3 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-4 py-3 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                       required
                       disabled={!!user}
                       placeholder="Enter your name"
@@ -444,7 +444,7 @@ const ProductDetails = () => {
                 <textarea
                   value={newReview.comment}
                   onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                   rows={4}
                   required
                   placeholder="Share your experience with this product..."
