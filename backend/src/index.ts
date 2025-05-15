@@ -1,6 +1,8 @@
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import swaggerUi from 'swagger-ui-express';
+import { swaggerSpec } from './config/swagger.js';
 import sequelize from './config/database.js';
 import productRoutes from './routes/productRoutes.js';
 import reviewRoutes from './routes/reviewRoutes.js';
@@ -15,15 +17,29 @@ dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 3000;
+const allowedOrigins = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : ['http://localhost:5173'];
 
 // Middleware
 app.use(cors({
-  origin: 'http://localhost:5173', // Frontend URL
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express.json());
+
+// API Documentation
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+  explorer: true,
+  customCss: '.swagger-ui .topbar { display: none }',
+  customSiteTitle: 'Product Review Catalog API Documentation'
+}));
 
 // Routes
 app.use('/api/products', productRoutes);
@@ -39,13 +55,18 @@ app.get('/api/health', (_req: Request, res: Response) => {
 // Error handling middleware
 interface ErrorWithStack extends Error {
   stack?: string;
+  statusCode?: number;
 }
 
 app.use((err: ErrorWithStack, req: Request, res: Response, _next: NextFunction) => {
+  const statusCode = err.statusCode || 500;
+  const isDevelopment = process.env.NODE_ENV === 'development';
+  
   console.error(err.stack);
-  res.status(500).json({
-    error: 'Internal Server Error',
-    message: process.env.NODE_ENV === 'development' ? err.message : undefined
+  res.status(statusCode).json({
+    error: err.name || 'Internal Server Error',
+    message: isDevelopment ? err.message : 'An unexpected error occurred',
+    ...(isDevelopment && { stack: err.stack })
   });
 });
 
@@ -70,9 +91,10 @@ const generateRandomProduct = (index: number) => {
 
 const seedDatabase = async () => {
   try {
-    const products = Array.from({ length: 1000 }, (_, index) => generateRandomProduct(index));
+    const seedCount = parseInt(process.env.SEED_COUNT || '100', 10);
+    const products = Array.from({ length: seedCount }, (_, index) => generateRandomProduct(index));
     await Product.bulkCreate(products);
-    console.log('1000 sample products added to database');
+    console.log(`${seedCount} sample products added to database`);
   } catch (error) {
     console.error('Error seeding database:', error);
   }
@@ -86,15 +108,15 @@ const startServer = async (): Promise<void> => {
     
     // Sync database (in development)
     if (process.env.NODE_ENV !== 'production') {
-      // Sync without force to preserve data
-      await sequelize.sync();
+      const shouldForceSync = process.env.FORCE_SYNC === 'true';
+      await sequelize.sync({ force: shouldForceSync });
       console.log('Database synced');
       
-      // Only seed if no products exist
+      // Only seed if explicitly enabled or no products exist
+      const shouldSeed = process.env.SEED_DATABASE === 'true';
       const productCount = await Product.count();
-      if (productCount === 0) {
+      if (shouldSeed || productCount === 0) {
         await seedDatabase();
-        console.log('Sample products added to database');
       }
     }
 
