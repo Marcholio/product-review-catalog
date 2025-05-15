@@ -49,7 +49,8 @@ const ProductList: React.FC = () => {
   ]);
   const [debouncedBudgetRange, setDebouncedBudgetRange] = useState<[number, number]>(budgetRange);
   const [categories, setCategories] = useState<string[]>([]);
-  const [dragging, setDragging] = useState<null | 'min' | 'max'>(null);
+  // Remove unused dragging state as react-range handles this internally
+  // const [dragging, setDragging] = useState<null | 'min' | 'max'>(null);
   const navigate = useNavigate();
 
   // Debounce search query
@@ -67,7 +68,7 @@ const ProductList: React.FC = () => {
     const timer = setTimeout(() => {
       setDebouncedBudgetRange(budgetRange);
       setCurrentPage(1); // Reset to first page when budget changes
-    }, 500); // Longer debounce for slider to prevent too many API calls
+    }, 400); // Reduced debounce time for more responsive UI but still prevent too many API calls
 
     return () => clearTimeout(timer);
   }, [budgetRange]);
@@ -147,7 +148,14 @@ const ProductList: React.FC = () => {
   };
 
   const handleBudgetRangeChange = (newRange: [number, number]) => {
-    setBudgetRange(newRange);
+    // Ensure min <= max and round values for better UX
+    const roundedMin = Math.floor(newRange[0] / 10) * 10;
+    const roundedMax = Math.ceil(newRange[1] / 10) * 10;
+    
+    // Prevent reverse range (min > max)
+    if (roundedMin <= roundedMax) {
+      setBudgetRange([roundedMin, roundedMax]);
+    }
   };
 
   const handleBudgetRangeBlur = async () => {
@@ -230,15 +238,16 @@ const ProductList: React.FC = () => {
             </label>
             <div className="relative h-12 flex flex-col justify-center">
               <Range
-                step={1}
+                step={10}
                 min={0}
                 max={MAX_PRICE}
                 values={budgetRange}
                 onChange={(values: number[]) => handleBudgetRangeChange(values as [number, number])}
                 onFinalChange={handleBudgetRangeBlur}
-                renderTrack={({ props, children }: { props: any; children: React.ReactNode }) => (
+                renderTrack={({ props, children, isDragged }: { props: any; children: React.ReactNode; isDragged: boolean }) => (
                   <div
-                    {...props}
+                    onMouseDown={props.onMouseDown}
+                    onTouchStart={props.onTouchStart}
                     style={{
                       ...props.style,
                       height: '8px',
@@ -246,12 +255,14 @@ const ProductList: React.FC = () => {
                       borderRadius: '4px',
                       background: `linear-gradient(to right, #e5e7eb 0%, #e5e7eb ${(budgetRange[0] / MAX_PRICE) * 100}%, #3b82f6 ${(budgetRange[0] / MAX_PRICE) * 100}%, #3b82f6 ${(budgetRange[1] / MAX_PRICE) * 100}%, #e5e7eb ${(budgetRange[1] / MAX_PRICE) * 100}%, #e5e7eb 100%)`,
                       position: 'relative',
+                      cursor: isDragged ? 'grabbing' : 'pointer',
                     }}
+                    ref={props.ref}
                   >
                     {children}
                   </div>
                 )}
-                renderThumb={({ props }: { props: any }) => (
+                renderThumb={({ props, index, isDragged }: { props: any; index: number; isDragged: boolean }) => (
                   <div
                     {...props}
                     style={{
@@ -260,21 +271,35 @@ const ProductList: React.FC = () => {
                       width: '24px',
                       borderRadius: '50%',
                       backgroundColor: '#ffffff',
-                      border: '2px solid #3b82f6',
+                      border: isDragged ? '2px solid #2563eb' : '2px solid #3b82f6',
                       display: 'flex',
                       justifyContent: 'center',
                       alignItems: 'center',
-                      boxShadow: '0 2px 6px rgba(59, 130, 246, 0.2)',
-                      cursor: 'pointer',
-                      transition: 'transform 0.2s ease',
+                      boxShadow: isDragged 
+                        ? '0 0 0 5px rgba(59, 130, 246, 0.1)' 
+                        : '0 2px 6px rgba(59, 130, 246, 0.2)',
+                      cursor: isDragged ? 'grabbing' : 'grab',
+                      touchAction: 'none',
+                      // Remove the transform transition
                     }}
-                    onMouseEnter={(e: React.MouseEvent<HTMLDivElement>) => {
-                      e.currentTarget.style.transform = 'scale(1.1)';
-                    }}
-                    onMouseLeave={(e: React.MouseEvent<HTMLDivElement>) => {
-                      e.currentTarget.style.transform = 'scale(1)';
-                    }}
-                  />
+                    aria-label={index === 0 ? "Minimum price" : "Maximum price"}
+                    role="slider"
+                    aria-valuemin={0}
+                    aria-valuemax={MAX_PRICE}
+                    aria-valuenow={budgetRange[index]}
+                    data-thumb-index={index}
+                  >
+                    <div 
+                      className="absolute -top-8 bg-blue-500 text-white text-xs rounded px-2 py-1"
+                      style={{
+                        opacity: isDragged ? 1 : 0,
+                        transition: 'opacity 0.2s ease',
+                        pointerEvents: 'none',
+                      }}
+                    >
+                      €{budgetRange[index]}
+                    </div>
+                  </div>
                 )}
               />
               <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-2">
