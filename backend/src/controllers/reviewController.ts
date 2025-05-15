@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import Review from '../models/Review.js';
 import Product from '../models/Product.js';
+import { updateProductRating } from '../utils/ratingUtils.js';
 
 export const getProductReviews = async (req: Request, res: Response) => {
   try {
@@ -33,8 +34,18 @@ export const createReview = async (req: Request, res: Response) => {
       userName,
     });
 
-    res.status(201).json(review);
+    // Update product rating using the utility function
+    const averageRating = await updateProductRating(productId);
+
+    res.status(201).json({
+      ...review.toJSON(),
+      productRating: averageRating
+    });
   } catch (error) {
-    res.status(500).json({ message: 'Error creating review', error });
+    console.error('Error creating review:', error);
+    res.status(500).json({ 
+      message: 'Error creating review', 
+      error: process.env.NODE_ENV === 'development' ? error : undefined 
+    });
   }
 }; 

@@ -1,5 +1,5 @@
 import express from 'express';
-import { getAllProducts, getProductById, getProductCategories } from '../controllers/productController.js';
+import { getAllProducts, getProductById, getProductCategories, recalculateAllRatings } from '../controllers/productController.js';
 
 const router = express.Router();
 
@@ -76,6 +76,21 @@ router.get('/', getAllProducts);
  *         description: Server error
  */
 router.get('/categories', getProductCategories);
+
+/**
+ * @swagger
+ * /api/products/admin/recalculate-ratings:
+ *   post:
+ *     summary: Recalculate all product ratings
+ *     description: Administrative endpoint to recalculate all product ratings based on their reviews
+ *     tags: [Products, Admin]
+ *     responses:
+ *       200:
+ *         description: Ratings recalculated successfully
+ *       500:
+ *         description: Server error
+ */
+router.post('/admin/recalculate-ratings', recalculateAllRatings);
 
 /**
  * @swagger

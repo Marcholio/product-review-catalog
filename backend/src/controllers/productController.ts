@@ -3,6 +3,7 @@ import Product from '../models/Product.js';
 import { Op, Order, literal } from 'sequelize';
 import Review from '../models/Review.js';
 import sequelize from '../config/database.js';
+import { getProductAttributesWithReviewStats, updateAllProductRatings } from '../utils/ratingUtils.js';
 
 const ITEMS_PER_PAGE = 12;
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes in milliseconds
@@ -49,26 +50,8 @@ export const getAllProducts = async (req: Request, res: Response) => {
       ];
     }
 
-    // Base query attributes with review count
-    const attributes = [
-      'id',
-      'name',
-      'description',
-      'price',
-      'category',
-      'rating',
-      'imageUrl',
-      'createdAt',
-      'updatedAt',
-      [
-        literal(`(
-          SELECT COUNT(*)
-          FROM "Reviews"
-          WHERE "Reviews"."productId" = "Product"."id"
-        )`),
-        'reviewCount'
-      ]
-    ];
+    // Base query attributes with review count and average rating
+    const attributes = getProductAttributesWithReviewStats();
 
     // Base group by clause - needed for aggregate functions
     const groupBy = [
@@ -166,15 +149,35 @@ export const getAllProducts = async (req: Request, res: Response) => {
 
 export const getProductById = async (req: Request, res: Response) => {
   try {
+    // Find the product with calculated rating from reviews
     const product = await Product.findByPk(req.params.id, {
-      attributes: ['id', 'name', 'description', 'price', 'imageUrl', 'category', 'rating']
+      attributes: getProductAttributesWithReviewStats(),
+      include: [{
+        model: Review,
+        attributes: [],
+        required: false
+      }]
     });
+    
     if (!product) {
       return res.status(404).json({ message: 'Product not found' });
     }
-    res.json(product);
+    
+    // Format the product data
+    const productData = product.toJSON();
+    
+    res.json({
+      ...productData,
+      price: Number(productData.price),
+      rating: Number(productData.rating || 0),
+      reviewCount: Number(productData.reviewCount || 0)
+    });
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching product', error });
+    console.error('Error fetching product:', error);
+    res.status(500).json({ 
+      message: 'Error fetching product', 
+      error: process.env.NODE_ENV === 'development' ? error : undefined 
+    });
   }
 };
 
@@ -196,5 +199,19 @@ export const getProductCategories = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Error fetching categories:', error);
     res.status(500).json({ message: 'Error fetching categories' });
+  }
+};
+
+// Admin route to update all product ratings
+export const recalculateAllRatings = async (req: Request, res: Response) => {
+  try {
+    await updateAllProductRatings();
+    res.json({ message: 'All product ratings have been recalculated' });
+  } catch (error) {
+    console.error('Error recalculating product ratings:', error);
+    res.status(500).json({ 
+      message: 'Error recalculating product ratings', 
+      error: process.env.NODE_ENV === 'development' ? error : undefined 
+    });
   }
 }; 

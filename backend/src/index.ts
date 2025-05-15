@@ -14,6 +14,7 @@ import Review from './models/Review.js';
 import Wishlist from './models/Wishlist.js';
 import User from './models/User.js';
 import * as helmet from 'helmet';
+import { updateAllProductRatings } from './utils/ratingUtils.js';
 
 dotenv.config();
 
@@ -499,6 +500,10 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS
       if (reviewsToCreate.length > 0) {
         await Review.bulkCreate(reviewsToCreate);
         console.log(`${reviewsToCreate.length} sample reviews added to database`);
+        
+        // Update all product ratings using the utility function
+        await updateAllProductRatings();
+        console.log('Product ratings updated based on reviews');
       }
       
     } catch (error) {
