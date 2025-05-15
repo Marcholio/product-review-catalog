@@ -12,6 +12,7 @@ interface UserAttributes {
     defaultCategory?: string;
     theme?: 'light' | 'dark';
     maxBudget?: number;
+    minBudget?: number;
   };
   createdAt?: Date;
   updatedAt?: Date;
@@ -27,6 +28,7 @@ class User extends Model<UserAttributes> implements UserAttributes {
     defaultCategory?: string;
     theme?: 'light' | 'dark';
     maxBudget?: number;
+    minBudget?: number;
   };
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
@@ -84,7 +86,8 @@ User.init(
         defaultSort: 'createdAt',
         defaultCategory: '',
         theme: 'light',
-        maxBudget: null
+        maxBudget: null,
+        minBudget: null
       },
     },
   },

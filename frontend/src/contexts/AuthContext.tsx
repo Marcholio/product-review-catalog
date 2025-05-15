@@ -10,6 +10,7 @@ interface User {
     defaultCategory?: string;
     theme?: 'light' | 'dark';
     maxBudget?: number;
+    minBudget?: number;
   };
 }
 
