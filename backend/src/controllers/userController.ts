@@ -113,21 +113,20 @@ export const login = async (req: Request, res: Response) => {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-    // Create a user instance for the token
-    const user = await User.findByPk(rawUser.id);
-    if (!user) {
-      return res.status(401).json({ message: 'Invalid credentials' });
-    }
+    // Create a minimal user object for token generation
+    const userForToken = {
+      id: rawUser.id,
+      email: rawUser.email,
+      name: rawUser.name,
+      preferences: rawUser.preferences
+    };
 
-    const token = generateToken(user);
+    console.log('User data for token:', userForToken);
+
+    const token = generateToken(userForToken as User);
 
     res.json({
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        preferences: user.preferences,
-      },
+      user: userForToken,
       token,
     });
   } catch (error) {
@@ -141,23 +140,86 @@ export const updatePreferences = async (req: Request, res: Response) => {
     const user = (req as any).user;
     const { preferences } = req.body;
 
+    console.log('Update preferences debug - Initial state:');
+    console.log('- Request user:', user);
+    console.log('- Request body:', req.body);
+
     if (!preferences) {
       return res.status(400).json({ message: 'Preferences are required' });
     }
 
-    await user.update({ preferences: { ...user.preferences, ...preferences } });
+    // Ensure we have a valid user with an ID
+    if (!user || !user.id) {
+      console.error('Invalid user object:', user);
+      return res.status(401).json({ message: 'Invalid user data' });
+    }
+
+    // Get current preferences or initialize empty object
+    const currentPreferences = user.preferences || {};
+    
+    // Update preferences
+    const updatedPreferences = {
+      ...currentPreferences,
+      ...preferences
+    };
+
+    console.log('Preferences update:');
+    console.log('- User ID:', user.id);
+    console.log('- Current preferences:', currentPreferences);
+    console.log('- New preferences:', preferences);
+    console.log('- Updated preferences:', updatedPreferences);
+
+    // First verify the user exists
+    const existingUser = await User.findByPk(user.id);
+    if (!existingUser) {
+      console.error('User not found in database:', user.id);
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Update user in database using Sequelize's update method
+    const [updatedRows] = await User.update(
+      { preferences: updatedPreferences },
+      { 
+        where: { id: user.id },
+        returning: true
+      }
+    );
+
+    console.log('Update result:', { updatedRows });
+
+    if (updatedRows === 0) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Fetch updated user
+    const updatedUser = await User.findByPk(user.id);
+
+    if (!updatedUser) {
+      console.error('User not found after update:', user.id);
+      return res.status(404).json({ message: 'User not found after update' });
+    }
+
+    console.log('Update successful:');
+    console.log('- Updated user:', {
+      id: updatedUser.id,
+      email: updatedUser.email,
+      preferences: updatedUser.preferences
+    });
 
     res.json({
       user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        preferences: user.preferences,
+        id: updatedUser.id,
+        email: updatedUser.email,
+        name: updatedUser.name,
+        preferences: updatedUser.preferences,
       },
     });
   } catch (error) {
     console.error('Update preferences error:', error);
-    res.status(500).json({ message: 'Error updating preferences', error: error instanceof Error ? error.message : 'Unknown error' });
+    res.status(500).json({ 
+      message: 'Error updating preferences', 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    });
   }
 };
 

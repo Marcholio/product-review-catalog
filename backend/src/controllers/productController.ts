@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import Product from '../models/Product.js';
-import { Op } from 'sequelize';
+import { Op, Order, literal } from 'sequelize';
 import Review from '../models/Review.js';
 import sequelize from '../config/database.js';
 
@@ -12,92 +12,96 @@ const cache = new Map<string, { data: any; timestamp: number }>();
 
 export const getAllProducts = async (req: Request, res: Response) => {
   try {
-    const sortBy = typeof req.query.sortBy === 'string' ? req.query.sortBy : 'createdAt';
-    const order = typeof req.query.order === 'string' ? req.query.order : 'DESC';
-    const page = Math.max(1, parseInt(req.query.page as string) || 1);
-    const offset = (page - 1) * ITEMS_PER_PAGE;
+    const { 
+      page = 1, 
+      limit = 10, 
+      sort = 'createdAt', 
+      category,
+      maxBudget
+    } = req.query;
 
-    // Generate cache key
-    const cacheKey = `products_${sortBy}_${order}_${page}`;
-    const cachedData = cache.get(cacheKey);
+    const offset = (Number(page) - 1) * Number(limit);
+    let order: Order = [['createdAt', 'DESC']];
     
-    if (cachedData && Date.now() - cachedData.timestamp < CACHE_DURATION) {
-      return res.json(cachedData.data);
+    if (sort === 'price') {
+      order = [['price', 'ASC']];
+    } else if (sort === 'rating') {
+      order = [['rating', 'DESC']];
+    } else if (sort === 'popularity') {
+      order = [[literal('reviewCount'), 'DESC']];
     }
 
-    let orderClause: any[] = [];
-    let queryOptions: any = {
-      limit: ITEMS_PER_PAGE,
+    const where: any = {};
+    if (category) {
+      where.category = category;
+    }
+    if (maxBudget) {
+      where.price = {
+        [Op.lte]: Number(maxBudget)
+      };
+    }
+
+    const { count, rows: products } = await Product.findAndCountAll({
+      where,
+      order,
+      limit: Number(limit),
       offset,
-      attributes: ['id', 'name', 'description', 'price', 'imageUrl', 'category', 'rating'],
-      order: orderClause
-    };
-    
-    switch (sortBy) {
-      case 'price':
-        queryOptions.order = [['price', order.toUpperCase()]];
-        break;
-      case 'rating':
-        queryOptions.order = [['rating', order.toUpperCase()]];
-        break;
-      case 'popularity':
-        // For popularity, we'll sort by the number of reviews
-        queryOptions = {
-          ...queryOptions,
-          include: [{
-            model: Review,
-            attributes: []
-          }],
-          attributes: {
-            include: [
-              [sequelize.fn('COUNT', sequelize.col('Reviews.id')), 'reviewCount']
-            ],
-            exclude: ['createdAt', 'updatedAt']
-          },
-          group: [
-            'Product.id',
-            'Product.name',
-            'Product.description',
-            'Product.price',
-            'Product.imageUrl',
-            'Product.category',
-            'Product.rating'
-          ],
-          order: [[sequelize.fn('COUNT', sequelize.col('Reviews.id')), order.toUpperCase()]]
-        };
-        break;
-      default:
-        queryOptions.order = [['createdAt', 'DESC']];
-    }
-
-    const [products, totalCount] = await Promise.all([
-      Product.findAll(queryOptions),
-      Product.count()
-    ]);
-
-    const response = {
-      products,
-      pagination: {
-        currentPage: page,
-        totalPages: Math.ceil(totalCount / ITEMS_PER_PAGE),
-        totalItems: totalCount,
-        itemsPerPage: ITEMS_PER_PAGE
-      }
-    };
-
-    // Cache the results
-    cache.set(cacheKey, {
-      data: response,
-      timestamp: Date.now()
+      attributes: [
+        'id',
+        'name',
+        'description',
+        'price',
+        'category',
+        'rating',
+        'imageUrl',
+        'createdAt',
+        'updatedAt',
+        [
+          literal(`(
+            SELECT COUNT(*)
+            FROM "Reviews"
+            WHERE "Reviews"."productId" = "Product"."id"
+          )`),
+          'reviewCount'
+        ]
+      ],
+      include: [{
+        model: Review,
+        attributes: []
+      }],
+      group: [
+        'Product.id',
+        'Product.name',
+        'Product.description',
+        'Product.price',
+        'Product.category',
+        'Product.rating',
+        'Product.imageUrl',
+        'Product.createdAt',
+        'Product.updatedAt'
+      ]
     });
-    
-    res.json(response);
+
+    // Ensure numeric values are properly typed
+    const formattedProducts = products.map(product => {
+      const productData = product.toJSON();
+      return {
+        ...productData,
+        price: Number(productData.price),
+        rating: Number(productData.rating),
+        reviewCount: Number((product as any).getDataValue('reviewCount'))
+      };
+    });
+
+    res.json({
+      products: formattedProducts,
+      totalPages: Math.ceil(count.length / Number(limit)),
+      currentPage: Number(page),
+      totalProducts: count.length
+    });
   } catch (error) {
-    console.error('Error in getAllProducts:', error);
-    res.status(500).json({ 
-      message: 'Error fetching products', 
-      error: process.env.NODE_ENV === 'development' ? error : undefined 
-    });
+    console.error('Error fetching products:', error);
+    res.status(500).json({ message: 'Error fetching products' });
   }
 };
 
@@ -112,5 +116,26 @@ export const getProductById = async (req: Request, res: Response) => {
     res.json(product);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching product', error });
+  }
+};
+
+export const getProductCategories = async (req: Request, res: Response) => {
+  try {
+    const categories = await Product.findAll({
+      attributes: [
+        [sequelize.fn('DISTINCT', sequelize.col('category')), 'category']
+      ],
+      where: {
+        category: {
+          [Op.ne]: ''
+        }
+      },
+      order: [['category', 'ASC']]
+    });
+
+    res.json(categories.map(cat => cat.getDataValue('category')));
+  } catch (error) {
+    console.error('Error fetching categories:', error);
+    res.status(500).json({ message: 'Error fetching categories' });
   }
 }; 

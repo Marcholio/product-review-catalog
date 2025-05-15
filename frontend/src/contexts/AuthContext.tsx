@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { API_URL } from '../config';
 
 interface User {
   id: number;
@@ -8,6 +9,7 @@ interface User {
     defaultSort?: string;
     defaultCategory?: string;
     theme?: 'light' | 'dark';
+    maxBudget?: number;
   };
 }
 
@@ -39,7 +41,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string, password: string) => {
     try {
-      const response = await fetch('http://localhost:3000/api/users/login', {
+      const response = await fetch(`${API_URL}/users/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -65,7 +67,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const register = async (email: string, password: string, name: string) => {
     try {
-      const response = await fetch('http://localhost:3000/api/users/register', {
+      const response = await fetch(`${API_URL}/users/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -97,8 +99,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const updatePreferences = async (preferences: Partial<User['preferences']>) => {
+    if (!token) {
+      throw new Error('Not authenticated');
+    }
+
     try {
-      const response = await fetch('http://localhost:3000/api/users/preferences', {
+      console.log('Updating preferences with token:', token.substring(0, 10) + '...');
+      
+      const response = await fetch(`${API_URL}/users/preferences`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -110,13 +118,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const data = await response.json();
 
       if (!response.ok) {
+        console.error('Preferences update failed:', data);
         throw new Error(data.message || 'Failed to update preferences');
       }
 
+      console.log('Preferences update successful:', data);
       setUser(data.user);
       localStorage.setItem('user', JSON.stringify(data.user));
     } catch (error) {
-      console.error('Update preferences error:', error);
+      console.error('Error updating preferences:', error);
       throw error;
     }
   };
