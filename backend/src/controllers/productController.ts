@@ -17,6 +17,7 @@ export const getAllProducts = async (req: Request, res: Response) => {
       limit = 10, 
       sort = 'createdAt', 
       category,
+      minBudget,
       maxBudget
     } = req.query;
 
@@ -35,9 +36,10 @@ export const getAllProducts = async (req: Request, res: Response) => {
     if (category) {
       where.category = category;
     }
-    if (maxBudget) {
+    if (minBudget || maxBudget) {
       where.price = {
-        [Op.lte]: Number(maxBudget)
+        ...(minBudget && { [Op.gte]: Number(minBudget) }),
+        ...(maxBudget !== undefined && { [Op.lte]: Number(maxBudget) })
       };
     }
 

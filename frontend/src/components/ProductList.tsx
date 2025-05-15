@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import type { Product } from '../types/index.d';
 import { API_URL } from '../config';
+import { Range } from 'react-range';
 
 const ProductSkeleton: React.FC = () => (
   <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden animate-pulse">
@@ -18,6 +19,9 @@ const ProductSkeleton: React.FC = () => (
   </div>
 );
 
+const MIN = 0;
+const MAX = 1000;
+
 const ProductList: React.FC = () => {
   const { user, updatePreferences, token } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
@@ -27,34 +31,28 @@ const ProductList: React.FC = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [sortBy, setSortBy] = useState(user?.preferences?.defaultSort || 'createdAt');
   const [selectedCategory, setSelectedCategory] = useState(user?.preferences?.defaultCategory || '');
-  const [maxBudget, setMaxBudget] = useState<string>(user?.preferences?.maxBudget?.toString() || '');
+  const MAX_PRICE = 2000; // Fixed maximum price
+  const [budgetRange, setBudgetRange] = useState<[number, number]>([
+    user?.preferences?.minBudget || 0,
+    user?.preferences?.maxBudget || MAX_PRICE
+  ]);
   const [categories, setCategories] = useState<string[]>([]);
-  const [debouncedBudget, setDebouncedBudget] = useState<string>(maxBudget);
-  const [isSearching, setIsSearching] = useState(false);
+  const [dragging, setDragging] = useState<null | 'min' | 'max'>(null);
 
-  // Debounce the budget value
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedBudget(maxBudget);
-    }, 500); // 500ms delay
-
-    return () => clearTimeout(timer);
-  }, [maxBudget]);
-
-  // Use debouncedBudget for API calls
+  // Use debounced values for API calls
   useEffect(() => {
     fetchProducts();
     fetchCategories();
-  }, [currentPage, sortBy, selectedCategory, debouncedBudget]);
+  }, [currentPage, sortBy, selectedCategory, budgetRange]);
 
   const fetchProducts = async () => {
     try {
-      setIsSearching(true);
       const queryParams = new URLSearchParams({
         page: currentPage.toString(),
         sort: sortBy,
         ...(selectedCategory && { category: selectedCategory }),
-        ...(debouncedBudget && { maxBudget: debouncedBudget })
+        ...(budgetRange[0] > 0 && { minBudget: budgetRange[0].toString() }),
+        ...(budgetRange[1] < MAX && { maxBudget: budgetRange[1].toString() })
       });
 
       const response = await fetch(`${API_URL}/products?${queryParams}`);
@@ -70,7 +68,6 @@ const ProductList: React.FC = () => {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setLoading(false);
-      setIsSearching(false);
     }
   };
 
@@ -113,45 +110,23 @@ const ProductList: React.FC = () => {
     }
   };
 
-  const handleBudgetChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    // Allow empty value or numbers only
-    if (value === '' || /^\d*$/.test(value)) {
-      setMaxBudget(value);
-    }
+  const handleBudgetRangeChange = (newRange: [number, number]) => {
+    setBudgetRange(newRange);
   };
 
-  const handleBudgetBlur = async () => {
-    if (maxBudget) {
-      const numericValue = parseInt(maxBudget, 10);
-      if (!isNaN(numericValue)) {
-        setMaxBudget(numericValue.toString());
-        if (user && token) {
-          try {
-            await updatePreferences({ maxBudget: numericValue });
-          } catch (err) {
-            console.error('Error updating budget preference:', err);
-            if (err instanceof Error && err.message !== 'Not authenticated') {
-              setError(err.message);
-            }
-          }
-        }
-      }
-    } else if (user && token) {
+  const handleBudgetRangeBlur = async () => {
+    if (user && token) {
       try {
-        await updatePreferences({ maxBudget: undefined });
+        await updatePreferences({
+          minBudget: budgetRange[0] > 0 ? budgetRange[0] : undefined,
+          maxBudget: budgetRange[1] < MAX && budgetRange[1] !== MAX_PRICE ? budgetRange[1] : undefined
+        });
       } catch (err) {
-        console.error('Error updating budget preference:', err);
+        console.error('Error updating budget preferences:', err);
         if (err instanceof Error && err.message !== 'Not authenticated') {
           setError(err.message);
         }
       }
-    }
-  };
-
-  const handleBudgetKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      handleBudgetBlur();
     }
   };
 
@@ -197,23 +172,55 @@ const ProductList: React.FC = () => {
             ))}
           </select>
 
-          <div className="relative">
+          <div className="relative w-64">
             <label htmlFor="budget" className="block text-sm font-medium text-gray-700 mb-1">
-              Max Budget
+              Budget Range: €{budgetRange[0]} - €{budgetRange[1]}
             </label>
-            <div className="relative">
-              <input
-                type="text"
-                id="budget"
-                value={maxBudget}
-                onChange={handleBudgetChange}
-                onBlur={handleBudgetBlur}
-                onKeyDown={handleBudgetKeyDown}
-                placeholder="No limit"
-                className="w-32 px-4 py-2 border rounded-lg bg-white dark:bg-gray-800 transition-colors duration-200"
+            <div className="relative h-12 flex flex-col justify-center">
+              {/* @ts-ignore */}
+              <Range
+                step={1}
+                min={0}
+                max={MAX_PRICE}
+                values={budgetRange}
+                onChange={(values: number[]) => handleBudgetRangeChange(values as [number, number])}
+                onFinalChange={handleBudgetRangeBlur}
+                renderTrack={({ props, children }: { props: any; children: React.ReactNode }) => (
+                  <div
+                    {...props}
+                    style={{
+                      ...props.style,
+                      height: '8px',
+                      width: '100%',
+                      borderRadius: '4px',
+                      background: `linear-gradient(to right, #e5e7eb 0%, #e5e7eb ${(budgetRange[0] / MAX_PRICE) * 100}%, #3b82f6 ${(budgetRange[0] / MAX_PRICE) * 100}%, #3b82f6 ${(budgetRange[1] / MAX_PRICE) * 100}%, #e5e7eb ${(budgetRange[1] / MAX_PRICE) * 100}%, #e5e7eb 100%)`,
+                      position: 'relative',
+                    }}
+                  >
+                    {children}
+                  </div>
+                )}
+                renderThumb={({ props, index }: { props: any; index: number }) => (
+                  <div
+                    {...props}
+                    style={{
+                      ...props.style,
+                      height: '24px',
+                      width: '24px',
+                      borderRadius: '50%',
+                      backgroundColor: '#fff',
+                      border: '2px solid #3b82f6',
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      boxShadow: '0 2px 6px #aaa',
+                    }}
+                  />
+                )}
               />
-              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                <span className="text-gray-500">€</span>
+              <div className="flex justify-between text-xs text-gray-500 mt-2">
+                <span>€0</span>
+                <span>€{MAX_PRICE}</span>
               </div>
             </div>
           </div>
@@ -221,11 +228,6 @@ const ProductList: React.FC = () => {
       </div>
 
       <div className="relative">
-        {isSearching && (
-          <div className="absolute inset-0 bg-white dark:bg-gray-900 bg-opacity-50 dark:bg-opacity-50 z-10 flex items-center justify-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-          </div>
-        )}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 transition-opacity duration-300">
           {products.map((product) => (
             <div 
