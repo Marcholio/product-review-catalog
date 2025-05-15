@@ -2,6 +2,8 @@ import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import sequelize from './config/database.js';
+import productRoutes from './routes/productRoutes.js';
+import Product from './models/Product.js';
 
 dotenv.config();
 
@@ -11,6 +13,9 @@ const port = process.env.PORT || 3000;
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+// Routes
+app.use('/api/products', productRoutes);
 
 // Basic route for testing
 app.get('/api/health', (_req: Request, res: Response) => {
@@ -30,6 +35,47 @@ app.use((err: ErrorWithStack, req: Request, res: Response, _next: NextFunction) 
   });
 });
 
+// Seed database with sample products
+const seedDatabase = async () => {
+  try {
+    const sampleProducts = [
+      {
+        name: 'Smartphone X',
+        description: 'Latest smartphone with advanced features',
+        price: 999.99,
+        imageUrl: 'https://picsum.photos/400/300',
+        category: 'Electronics'
+      },
+      {
+        name: 'Laptop Pro',
+        description: 'High-performance laptop for professionals',
+        price: 1499.99,
+        imageUrl: 'https://picsum.photos/400/300',
+        category: 'Electronics'
+      },
+      {
+        name: 'Wireless Headphones',
+        description: 'Noise-cancelling wireless headphones',
+        price: 199.99,
+        imageUrl: 'https://picsum.photos/400/300',
+        category: 'Audio'
+      },
+      {
+        name: 'Smart Watch',
+        description: 'Fitness tracker and smart watch',
+        price: 299.99,
+        imageUrl: 'https://picsum.photos/400/300',
+        category: 'Wearables'
+      }
+    ];
+
+    await Product.bulkCreate(sampleProducts);
+    console.log('Sample products added to database');
+  } catch (error) {
+    console.error('Error seeding database:', error);
+  }
+};
+
 // Database connection and server start
 const startServer = async (): Promise<void> => {
   try {
@@ -40,6 +86,12 @@ const startServer = async (): Promise<void> => {
     if (process.env.NODE_ENV !== 'production') {
       await sequelize.sync({ alter: true });
       console.log('Database synced');
+      
+      // Seed database with sample products
+      const productCount = await Product.count();
+      if (productCount === 0) {
+        await seedDatabase();
+      }
     }
 
     app.listen(port, () => {
