@@ -3,7 +3,9 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import sequelize from './config/database.js';
 import productRoutes from './routes/productRoutes.js';
+import reviewRoutes from './routes/reviewRoutes.js';
 import Product from './models/Product.js';
+import Review from './models/Review.js';
 
 dotenv.config();
 
@@ -16,6 +18,7 @@ app.use(express.json());
 
 // Routes
 app.use('/api/products', productRoutes);
+app.use('/api/reviews', reviewRoutes);
 
 // Basic route for testing
 app.get('/api/health', (_req: Request, res: Response) => {
