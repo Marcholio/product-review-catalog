@@ -5,6 +5,8 @@ import type { Product } from '../types/Product';
 const ProductList = () => {
   const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -17,6 +19,7 @@ const ProductList = () => {
         }
         const data = await response.json();
         setProducts(data);
+        setFilteredProducts(data);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An error occurred');
       } finally {
@@ -26,6 +29,18 @@ const ProductList = () => {
 
     fetchProducts();
   }, []);
+
+  useEffect(() => {
+    const filtered = products.filter(product => {
+      const searchLower = searchQuery.toLowerCase();
+      return (
+        product.name.toLowerCase().includes(searchLower) ||
+        product.description.toLowerCase().includes(searchLower) ||
+        product.category.toLowerCase().includes(searchLower)
+      );
+    });
+    setFilteredProducts(filtered);
+  }, [searchQuery, products]);
 
   if (loading) {
     return <div className="flex justify-center items-center min-h-screen">Loading...</div>;
@@ -37,34 +52,60 @@ const ProductList = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8">Products</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {products.map((product) => (
-          <div
-            key={product.id}
-            className="bg-white rounded-lg shadow-md overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
-            onClick={() => navigate(`/products/${product.id}`)}
-          >
-            <img
-              src={product.imageUrl}
-              alt={product.name}
-              className="w-full h-48 object-cover"
-            />
-            <div className="p-4">
-              <h2 className="text-xl font-semibold mb-2">{product.name}</h2>
-              <p className="text-gray-600 mb-2">{product.description}</p>
-              <div className="flex justify-between items-center">
-                <span className="text-lg font-bold">
-                  ${typeof product.price === 'number' 
-                    ? product.price.toFixed(2) 
-                    : Number(product.price).toFixed(2)}
-                </span>
-                <span className="text-sm text-gray-500">{product.category}</span>
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold">Products</h1>
+        <div className="relative w-64">
+          <input
+            type="text"
+            placeholder="Search products..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            >
+              ×
+            </button>
+          )}
+        </div>
+      </div>
+
+      {filteredProducts.length === 0 ? (
+        <div className="text-center text-gray-500 py-8">
+          No products found matching your search.
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {filteredProducts.map((product) => (
+            <div
+              key={product.id}
+              className="bg-white rounded-lg shadow-md overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
+              onClick={() => navigate(`/products/${product.id}`)}
+            >
+              <img
+                src={product.imageUrl}
+                alt={product.name}
+                className="w-full h-48 object-cover"
+              />
+              <div className="p-4">
+                <h2 className="text-xl font-semibold mb-2">{product.name}</h2>
+                <p className="text-gray-600 mb-2">{product.description}</p>
+                <div className="flex justify-between items-center">
+                  <span className="text-lg font-bold">
+                    ${typeof product.price === 'number' 
+                      ? product.price.toFixed(2) 
+                      : Number(product.price).toFixed(2)}
+                  </span>
+                  <span className="text-sm text-gray-500">{product.category}</span>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
