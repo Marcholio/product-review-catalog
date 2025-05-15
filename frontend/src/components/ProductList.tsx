@@ -2,19 +2,34 @@ import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import type { Product } from '../types/Product';
 
+type SortOption = {
+  value: string;
+  label: string;
+};
+
+const sortOptions: SortOption[] = [
+  { value: 'createdAt', label: 'Newest First' },
+  { value: 'price_asc', label: 'Price: Low to High' },
+  { value: 'price_desc', label: 'Price: High to Low' },
+  { value: 'rating_desc', label: 'Highest Rated' },
+  { value: 'popularity_desc', label: 'Most Popular' },
+];
+
 const ProductList = () => {
   const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [sortBy, setSortBy] = useState<string>('createdAt');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetch('http://localhost:3000/api/products');
+        const [sortField, order] = sortBy.split('_');
+        const response = await fetch(`http://localhost:3000/api/products?sortBy=${sortField}&order=${order || 'DESC'}`);
         if (!response.ok) {
           throw new Error('Failed to fetch products');
         }
@@ -29,7 +44,7 @@ const ProductList = () => {
     };
 
     fetchProducts();
-  }, []);
+  }, [sortBy]);
 
   useEffect(() => {
     const filtered = products.filter(product => {
@@ -67,6 +82,17 @@ const ProductList = () => {
           >
             My Wishlist
           </Link>
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          >
+            {sortOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}

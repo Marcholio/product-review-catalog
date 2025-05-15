@@ -8,6 +8,7 @@ interface ProductAttributes {
   price: number;
   imageUrl: string;
   category: string;
+  rating?: number;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -19,6 +20,7 @@ class Product extends Model<ProductAttributes> implements ProductAttributes {
   public price!: number;
   public imageUrl!: string;
   public category!: string;
+  public rating!: number;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 }
@@ -49,6 +51,11 @@ Product.init(
     category: {
       type: DataTypes.STRING,
       allowNull: false,
+    },
+    rating: {
+      type: DataTypes.DECIMAL(3, 2),
+      allowNull: true,
+      defaultValue: 0,
     },
   },
   {
