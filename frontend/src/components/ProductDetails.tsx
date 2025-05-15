@@ -10,6 +10,7 @@ const ProductDetails = () => {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isInWishlist, setIsInWishlist] = useState(false);
   const [newReview, setNewReview] = useState({
     rating: 5,
     comment: '',
@@ -19,9 +20,10 @@ const ProductDetails = () => {
   useEffect(() => {
     const fetchProductAndReviews = async () => {
       try {
-        const [productResponse, reviewsResponse] = await Promise.all([
+        const [productResponse, reviewsResponse, wishlistResponse] = await Promise.all([
           fetch(`http://localhost:3000/api/products/${id}`),
           fetch(`http://localhost:3000/api/reviews/product/${id}`),
+          fetch('http://localhost:3000/api/wishlist'),
         ]);
 
         if (!productResponse.ok) {
@@ -30,12 +32,17 @@ const ProductDetails = () => {
         if (!reviewsResponse.ok) {
           throw new Error('Failed to fetch reviews');
         }
+        if (!wishlistResponse.ok) {
+          throw new Error('Failed to fetch wishlist');
+        }
 
         const productData = await productResponse.json();
         const reviewsData = await reviewsResponse.json();
+        const wishlistData = await wishlistResponse.json();
         
         setProduct(productData);
         setReviews(reviewsData);
+        setIsInWishlist(wishlistData.some((item: any) => item.productId === parseInt(id!, 10)));
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An error occurred');
       } finally {
@@ -64,6 +71,23 @@ const ProductDetails = () => {
       const review = await response.json();
       setReviews([review, ...reviews]);
       setNewReview({ rating: 5, comment: '', userName: '' });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    }
+  };
+
+  const handleWishlistToggle = async () => {
+    try {
+      const method = isInWishlist ? 'DELETE' : 'POST';
+      const response = await fetch(`http://localhost:3000/api/wishlist/product/${id}`, {
+        method,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to ${isInWishlist ? 'remove from' : 'add to'} wishlist`);
+      }
+
+      setIsInWishlist(!isInWishlist);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     }
@@ -117,6 +141,16 @@ const ProductDetails = () => {
             <div className="mb-4">
               <span className="text-lg font-semibold">Average Rating: {averageRating}</span>
             </div>
+            <button
+              onClick={handleWishlistToggle}
+              className={`px-6 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                isInWishlist
+                  ? 'bg-red-500 text-white hover:bg-red-600'
+                  : 'bg-blue-500 text-white hover:bg-blue-600'
+              }`}
+            >
+              {isInWishlist ? 'Remove from Wishlist' : 'Add to Wishlist'}
+            </button>
           </div>
         </div>
       </div>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import type { Product } from '../types/Product';
 
 const ProductList = () => {
@@ -60,7 +60,13 @@ const ProductList = () => {
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Products</h1>
-        <div className="flex gap-4">
+        <div className="flex gap-4 items-center">
+          <Link
+            to="/wishlist"
+            className="text-blue-500 hover:text-blue-700 font-medium"
+          >
+            My Wishlist
+          </Link>
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
