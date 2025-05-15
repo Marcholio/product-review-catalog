@@ -78,14 +78,12 @@ const startServer = async (): Promise<void> => {
     
     // Sync database (in development)
     if (process.env.NODE_ENV !== 'production') {
-      await sequelize.sync({ alter: true });
-      console.log('Database synced');
+      // Force sync to clear existing data
+      await sequelize.sync({ force: true });
+      console.log('Database synced and cleared');
       
-      // Seed database with sample products
-      const productCount = await Product.count();
-      if (productCount === 0) {
-        await seedDatabase();
-      }
+      // Always seed database in development
+      await seedDatabase();
     }
 
     app.listen(port, () => {
