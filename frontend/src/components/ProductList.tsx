@@ -1,10 +1,17 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import type { Product } from '../types/Product';
 
 type SortOption = {
   value: string;
   label: string;
+};
+
+type PaginationInfo = {
+  currentPage: number;
+  totalPages: number;
+  totalItems: number;
+  itemsPerPage: number;
 };
 
 const sortOptions: SortOption[] = [
@@ -22,20 +29,31 @@ const ProductList = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [sortBy, setSortBy] = useState<string>('createdAt');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pagination, setPagination] = useState<PaginationInfo>({
+    currentPage: 1,
+    totalPages: 1,
+    totalItems: 0,
+    itemsPerPage: 12
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
+        setLoading(true);
         const [sortField, order] = sortBy.split('_');
-        const response = await fetch(`http://localhost:3000/api/products?sortBy=${sortField}&order=${order || 'DESC'}`);
+        const response = await fetch(
+          `http://localhost:3000/api/products?sortBy=${sortField}&order=${order || 'DESC'}&page=${currentPage}`
+        );
         if (!response.ok) {
           throw new Error('Failed to fetch products');
         }
         const data = await response.json();
-        setProducts(data);
-        setFilteredProducts(data);
+        setProducts(data.products);
+        setFilteredProducts(data.products);
+        setPagination(data.pagination);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An error occurred');
       } finally {
@@ -44,7 +62,7 @@ const ProductList = () => {
     };
 
     fetchProducts();
-  }, [sortBy]);
+  }, [sortBy, currentPage]);
 
   useEffect(() => {
     const filtered = products.filter(product => {
@@ -61,15 +79,23 @@ const ProductList = () => {
     setFilteredProducts(filtered);
   }, [searchQuery, products, selectedCategory]);
 
-  if (loading) {
+  const categories = useMemo(() => 
+    ['', ...new Set(products.map(product => product.category))],
+    [products]
+  );
+
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  if (loading && currentPage === 1) {
     return <div className="flex justify-center items-center min-h-screen">Loading...</div>;
   }
 
   if (error) {
     return <div className="text-red-500 text-center p-4">{error}</div>;
   }
-
-  const categories = ['', ...new Set(products.map(product => product.category))];
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -84,7 +110,10 @@ const ProductList = () => {
           </Link>
           <select
             value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
+            onChange={(e) => {
+              setSortBy(e.target.value);
+              setCurrentPage(1);
+            }}
             className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
             {sortOptions.map((option) => (
@@ -129,33 +158,59 @@ const ProductList = () => {
           No products found matching your search.
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {filteredProducts.map((product) => (
-            <div
-              key={product.id}
-              className="bg-white rounded-lg shadow-md overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
-              onClick={() => navigate(`/products/${product.id}`)}
-            >
-              <img
-                src={product.imageUrl}
-                alt={product.name}
-                className="w-full h-48 object-cover"
-              />
-              <div className="p-4">
-                <h2 className="text-xl font-semibold mb-2">{product.name}</h2>
-                <p className="text-gray-600 mb-2">{product.description}</p>
-                <div className="flex justify-between items-center">
-                  <span className="text-lg font-bold">
-                    ${typeof product.price === 'number' 
-                      ? product.price.toFixed(2) 
-                      : Number(product.price).toFixed(2)}
-                  </span>
-                  <span className="text-sm text-gray-500">{product.category}</span>
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {filteredProducts.map((product) => (
+              <div
+                key={product.id}
+                className="bg-white rounded-lg shadow-md overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
+                onClick={() => navigate(`/products/${product.id}`)}
+              >
+                <img
+                  src={product.imageUrl}
+                  alt={product.name}
+                  className="w-full h-48 object-cover"
+                  loading="lazy"
+                />
+                <div className="p-4">
+                  <h2 className="text-xl font-semibold mb-2">{product.name}</h2>
+                  <p className="text-gray-600 mb-2 line-clamp-2">{product.description}</p>
+                  <div className="flex justify-between items-center">
+                    <span className="text-lg font-bold">
+                      ${typeof product.price === 'number' 
+                        ? product.price.toFixed(2) 
+                        : Number(product.price).toFixed(2)}
+                    </span>
+                    <span className="text-sm text-gray-500">{product.category}</span>
+                  </div>
                 </div>
               </div>
+            ))}
+          </div>
+
+          {/* Pagination */}
+          {pagination.totalPages > 1 && (
+            <div className="flex justify-center items-center mt-8 gap-2">
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Previous
+              </button>
+              <span className="px-4 py-2">
+                Page {currentPage} of {pagination.totalPages}
+              </span>
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === pagination.totalPages}
+                className="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Next
+              </button>
             </div>
-          ))}
-        </div>
+          )}
+        </>
       )}
     </div>
   );
