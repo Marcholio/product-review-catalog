@@ -18,13 +18,28 @@ export const securityConfig = {
     maxAge: 86400 // 24 hours
   },
   rateLimit: {
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // Limit each IP to 100 requests per windowMs
-    message: 'Too many requests from this IP, please try again later.'
+    // Default rate limit for most endpoints
+    default: {
+      windowMs: 15 * 60 * 1000, // 15 minutes
+      max: 100, // Limit each IP to 100 requests per windowMs
+      message: 'Too many requests from this IP, please try again later.'
+    },
+    // More lenient rate limit for product search
+    productSearch: {
+      windowMs: 1 * 60 * 1000, // 1 minute
+      max: 60, // 60 requests per minute (1 per second)
+      message: 'Too many search requests, please try again later.'
+    },
+    // Stricter rate limit for authentication
+    auth: {
+      windowMs: 15 * 60 * 1000, // 15 minutes
+      max: 20, // 20 attempts per 15 minutes
+      message: 'Too many authentication attempts, please try again later.'
+    }
   }
 };
 
-export const createRateLimiter = (): RateLimitRequestHandler => {
+export const createRateLimiter = (type: 'default' | 'productSearch' | 'auth' = 'default'): RateLimitRequestHandler => {
   const rl = (rateLimit as any).default ? (rateLimit as any).default : (rateLimit as any);
-  return rl(securityConfig.rateLimit);
+  return rl(securityConfig.rateLimit[type]);
 }; 

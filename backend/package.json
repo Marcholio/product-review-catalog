@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "start": "node dist/index.js",
-    "dev": "NODE_ENV=development node --loader ts-node/esm src/index.ts",
+    "dev": "NODE_ENV=development tsx watch src/index.ts",
     "build": "tsc",
     "watch": "tsc -w",
     "test": "jest"
@@ -42,6 +42,7 @@
     "supertest": "^6.3.4",
     "ts-jest": "^29.1.2",
     "ts-node": "^10.9.2",
+    "tsx": "^4.19.4",
     "typescript": "^5.3.3"
   }
 }

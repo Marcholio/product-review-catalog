@@ -25,10 +25,12 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS
   // Dynamic import for helmet
   const helmet = (await import('helmet')).default;
   // Security middleware
-  app.use((helmet as any).default ? (helmet as any).default() : (helmet as any)());
+  app.use(helmet());
 
-  // Rate limiting
-  app.use('/api/', createRateLimiter());
+  // Rate limiting - apply different limits to different routes
+  app.use('/api/products', createRateLimiter('productSearch')); // More lenient for product search
+  app.use('/api/auth', createRateLimiter('auth')); // Stricter for auth
+  app.use('/api/', createRateLimiter('default')); // Default for other routes
 
   // CORS configuration
   app.use(cors(securityConfig.cors));
