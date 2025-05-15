@@ -85,6 +85,7 @@ const ProductDetails = () => {
   const [error, setError] = useState<string | null>(null);
   const [isInWishlist, setIsInWishlist] = useState(false);
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+  const [hoverRating, setHoverRating] = useState<number | null>(null);
   const [newReview, setNewReview] = useState({
     rating: 5,
     comment: '',
@@ -385,20 +386,36 @@ const ProductDetails = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div>
                   <label className="block text-gray-700 mb-2 font-medium">Your Rating</label>
-                  <div className="relative">
-                    <select
-                      value={newReview.rating}
-                      onChange={(e) => setNewReview({ ...newReview, rating: Number(e.target.value) })}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none pr-10 bg-white"
-                    >
-                      {[5, 4, 3, 2, 1].map((rating) => (
-                        <option key={rating} value={rating}>
-                          {rating} {rating === 1 ? 'Star' : 'Stars'}
-                        </option>
+                  <div className="flex items-center">
+                    <div className="flex">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <button
+                          key={star}
+                          type="button"
+                          onClick={() => setNewReview({ ...newReview, rating: star })}
+                          onMouseEnter={() => setHoverRating(star)}
+                          onMouseLeave={() => setHoverRating(null)}
+                          className="text-3xl focus:outline-none transition-all duration-200 hover:scale-110 transform p-1"
+                          aria-label={`Rate ${star} stars`}
+                        >
+                          <span className={
+                            hoverRating !== null
+                              ? star <= hoverRating
+                                ? "text-amber-400"
+                                : "text-gray-300"
+                              : star <= newReview.rating
+                                ? "text-amber-400"
+                                : "text-gray-300"
+                          }>
+                            ★
+                          </span>
+                        </button>
                       ))}
-                    </select>
-                    <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                      <FiStar className="text-amber-400" />
+                    </div>
+                    <div className="ml-3 px-3 py-1 bg-gray-100 rounded-lg">
+                      <span className="font-medium text-gray-700">
+                        {newReview.rating} {newReview.rating === 1 ? 'Star' : 'Stars'}
+                      </span>
                     </div>
                   </div>
                 </div>
