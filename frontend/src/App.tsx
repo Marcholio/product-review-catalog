@@ -15,9 +15,9 @@ function App() {
   return (
     <AuthProvider>
       <Router>
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
           <Navbar />
-          <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+          <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
             <Routes>
               <Route path="/" element={<ProductList />} />
               <Route path="/products/:id" element={<ProductDetails />} />
@@ -32,6 +32,20 @@ function App() {
               <Route path="/auth" element={<AuthForm />} />
             </Routes>
           </main>
+          <footer className="bg-white mt-12 border-t border-gray-200">
+            <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+              <div className="flex flex-col md:flex-row justify-between items-center">
+                <div className="flex items-center mb-4 md:mb-0">
+                  <span className="text-lg font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 text-transparent bg-clip-text">
+                    Product Catalog
+                  </span>
+                </div>
+                <div className="text-sm text-gray-500">
+                  &copy; {new Date().getFullYear()} Product Catalog. All rights reserved.
+                </div>
+              </div>
+            </div>
+          </footer>
         </div>
       </Router>
     </AuthProvider>
