@@ -28,6 +28,7 @@ export interface AuthContextType {
   user: User | null;
   token: string | null;
   loading: boolean;
+  initializing: boolean; // New flag to indicate auth state is being initialized
   error: AuthError | null;
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, name: string) => Promise<void>;
@@ -44,6 +45,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [initializing, setInitializing] = useState(true); // Start with initializing = true
   const [error, setError] = useState<AuthError | null>(null);
   
   // Initialize the API hook
@@ -51,21 +53,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     // Check for stored auth data on mount
-    const storedToken = localStorage.getItem('token');
-    const storedUser = localStorage.getItem('user');
-    
-    if (storedToken && storedUser) {
+    const loadAuthState = async () => {
       try {
-        setToken(storedToken);
-        setUser(JSON.parse(storedUser));
+        const storedToken = localStorage.getItem('token');
+        const storedUser = localStorage.getItem('user');
+        
+        if (storedToken && storedUser) {
+          try {
+            setToken(storedToken);
+            setUser(JSON.parse(storedUser));
+          } catch (err) {
+            // Handle parsing error
+            console.error('Error parsing stored user data:', err);
+            // Clear invalid storage
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+          }
+        }
       } catch (err) {
-        // Handle parsing error
-        console.error('Error parsing stored user data:', err);
-        // Clear invalid storage
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
+        console.error('Error loading auth state:', err);
+      } finally {
+        // Mark initialization as complete
+        setInitializing(false);
       }
-    }
+    };
+
+    loadAuthState();
   }, []);
 
   const clearError = () => {
@@ -187,6 +200,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         user, 
         token, 
         loading,
+        initializing, // Include new initializing state in the context value
         error,
         login, 
         register, 

@@ -7,7 +7,14 @@ import Navbar from './components/Navbar';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user } = useAuth();
+  const { user, initializing } = useAuth();
+  
+  // If auth state is still initializing, show a loading indicator instead of redirecting
+  if (initializing) {
+    return <div className="flex justify-center items-center min-h-screen">Loading...</div>;
+  }
+  
+  // Only redirect to auth if we're sure the user is not authenticated
   return user ? <>{children}</> : <Navigate to="/auth" />;
 };
 

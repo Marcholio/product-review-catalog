@@ -1,9 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { FiShoppingBag } from 'react-icons/fi';
 import { LoginForm, RegisterForm, BenefitsList } from './auth';
+import { useAuth } from '../contexts/AuthContext';
 
 const AuthForm: React.FC = () => {
   const [isLogin, setIsLogin] = useState(true);
+  const { user, initializing } = useAuth();
+  const navigate = useNavigate();
+
+  // Redirect if user is already logged in
+  useEffect(() => {
+    if (user && !initializing) {
+      navigate('/');
+    }
+  }, [user, initializing, navigate]);
 
   const handleSwitchMode = () => {
     setIsLogin(!isLogin);
@@ -14,6 +25,11 @@ const AuthForm: React.FC = () => {
     "Save products to your wishlist",
     "Write and read honest product reviews"
   ];
+
+  // Show loading while checking auth state
+  if (initializing) {
+    return <div className="flex justify-center items-center min-h-screen">Loading...</div>;
+  }
 
   return (
     <div className="min-h-screen w-full flex flex-col md:flex-row bg-gradient-to-br from-blue-50 to-indigo-100">
