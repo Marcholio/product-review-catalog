@@ -200,7 +200,7 @@ const ProductList: React.FC = () => {
   }, [navigate]);
 
   return (
-    <div className="w-full min-h-[calc(100vh-4rem)]">
+    <div className="w-full min-h-[calc(100vh-4rem)]" id="onboarding-product-list-page">
       <div className="py-4 sm:py-6 lg:py-8 w-full">
         <div className="w-full">
           {/* Hero Section */}
@@ -231,6 +231,7 @@ const ProductList: React.FC = () => {
             <FeaturedProducts 
               products={products} 
               onProductClick={handleProductClick}
+              id="onboarding-featured-products"
             />
           )}
 
@@ -239,6 +240,7 @@ const ProductList: React.FC = () => {
             products={products} 
             loading={loading} 
             onProductClick={handleProductClick}
+            id="onboarding-product-grid"
           />
 
           {/* Pagination */}
@@ -248,6 +250,7 @@ const ProductList: React.FC = () => {
               totalPages={totalPages}
               onPageChange={setCurrentPage}
               className="mt-8"
+              id="onboarding-pagination"
             />
           )}
         </div>

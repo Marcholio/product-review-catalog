@@ -5,12 +5,13 @@ import type { Review } from '../../types/ReviewType';
 
 interface ReviewListProps {
   reviews: Review[];
+  id?: string;
 }
 
-const ReviewList: React.FC<ReviewListProps> = ({ reviews }) => {
+const ReviewList: React.FC<ReviewListProps> = ({ reviews, id }) => {
   return (
-    <div>
-      <h3 className="text-xl font-semibold mb-4 text-gray-900 flex items-center">
+    <div id={id}>
+      <h3 className="text-xl font-semibold mb-4 text-gray-900 flex items-center" id="onboarding-reviews-count">
         {reviews.length > 0 ? (
           <>All Reviews ({reviews.length})</>
         ) : (

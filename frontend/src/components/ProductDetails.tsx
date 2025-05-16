@@ -178,7 +178,7 @@ const ProductDetails = () => {
     : 'No ratings yet';
 
   return (
-    <div className="w-full px-4 py-8">
+    <div className="w-full px-4 py-8" id="onboarding-product-details">
       {/* Product Header Section */}
       <ProductHeader 
         product={product}
@@ -190,20 +190,20 @@ const ProductDetails = () => {
       />
 
       {/* Reviews Section */}
-      <div className="mb-12">
-        <h2 className="text-2xl font-bold mb-6 text-gray-900 flex items-center">
+      <div className="mb-12" id="reviews">
+        <h2 className="text-2xl font-bold mb-6 text-gray-900 flex items-center" id="onboarding-reviews-title">
           <FiMessageSquare className="mr-2 text-blue-600" />
           Customer Reviews
         </h2>
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
           {/* Rating Summary Card */}
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-1" id="onboarding-rating-summary">
             <RatingSummary reviews={reviews} />
           </div>
           
           {/* Review Form */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2" id="review-form">
             <ReviewForm 
               onSubmit={handleReviewSubmit}
               isSubmitting={isSubmittingReview}
@@ -214,7 +214,7 @@ const ProductDetails = () => {
         </div>
         
         {/* Reviews List */}
-        <ReviewList reviews={reviews} />
+        <ReviewList reviews={reviews} id="onboarding-review-list" />
       </div>
     </div>
   );

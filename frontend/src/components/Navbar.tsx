@@ -20,12 +20,12 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="bg-white shadow-md sticky top-0 z-50 w-full">
+    <nav className="bg-white shadow-md sticky top-0 z-50 w-full" id="onboarding-navbar">
       <div className="w-full px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           {/* Logo and brand */}
           <div className="flex items-center">
-            <Link to="/" className="flex items-center space-x-2" onClick={() => setIsMenuOpen(false)}>
+            <Link to="/" className="flex items-center space-x-2" onClick={() => setIsMenuOpen(false)} id="onboarding-logo">
               <FiShoppingBag className="h-8 w-8 text-blue-600" strokeWidth={2} />
               <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 text-transparent bg-clip-text">
                 Product Catalog
@@ -52,6 +52,7 @@ const Navbar = () => {
                     ${isActivePath('/wishlist') 
                       ? 'text-blue-600 bg-blue-50' 
                       : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50'}`}
+                  id="onboarding-wishlist-nav"
                 >
                   <FiHeart className="h-4 w-4" />
                   <span>Wishlist</span>
@@ -76,6 +77,7 @@ const Navbar = () => {
               <Link
                 to="/auth"
                 className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg text-sm font-medium transition-colors duration-200 flex items-center space-x-1"
+                id="onboarding-auth-button"
               >
                 <FiUser className="h-4 w-4" />
                 <span>Login / Sign Up</span>

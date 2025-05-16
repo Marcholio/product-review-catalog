@@ -40,12 +40,12 @@ const FilterSection: React.FC<FilterSectionProps> = ({
   maxPrice
 }) => {
   return (
-    <Card variant="default" className="mb-8">
+    <Card variant="default" className="mb-8" id="filter-section-container">
       <div className="p-6">
-        <h2 className="text-xl font-bold mb-4 text-gray-800">Find Your Perfect Products</h2>
+        <h2 className="text-xl font-bold mb-4 text-gray-800" id="filter-section-title">Find Your Perfect Products</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {/* Search Input */}
-          <div className="relative">
+          <div className="relative" id="onboarding-search-container">
             <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-1">Search</label>
             <div className="relative rounded-md shadow-sm">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -55,7 +55,7 @@ const FilterSection: React.FC<FilterSectionProps> = ({
                 />
               </div>
               <input
-                id="search"
+                id="onboarding-search-input"
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -66,7 +66,7 @@ const FilterSection: React.FC<FilterSectionProps> = ({
           </div>
 
           {/* Sort By Select */}
-          <div className="relative">
+          <div className="relative" id="onboarding-sort-container">
             <label htmlFor="sort" className="block text-sm font-medium text-gray-700 mb-1">Sort By</label>
             <div className="relative rounded-md shadow-sm">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -76,7 +76,7 @@ const FilterSection: React.FC<FilterSectionProps> = ({
                 />
               </div>
               <select
-                id="sort"
+                id="onboarding-sort-select"
                 value={sortBy}
                 onChange={(e) => handleSortChange(e.target.value)}
                 className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none cursor-pointer transition duration-150"
@@ -95,7 +95,7 @@ const FilterSection: React.FC<FilterSectionProps> = ({
           </div>
 
           {/* Category Select */}
-          <div className="relative">
+          <div className="relative" id="onboarding-category-container">
             <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">Category</label>
             <div className="relative rounded-md shadow-sm">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -105,7 +105,7 @@ const FilterSection: React.FC<FilterSectionProps> = ({
                 />
               </div>
               <select
-                id="category"
+                id="onboarding-category-select"
                 value={selectedCategory}
                 onChange={(e) => handleCategoryChange(e.target.value)}
                 className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none cursor-pointer transition duration-150"
@@ -126,7 +126,7 @@ const FilterSection: React.FC<FilterSectionProps> = ({
           </div>
 
           {/* Price Range Slider */}
-          <div className="relative">
+          <div className="relative" id="onboarding-price-range-container">
             <label htmlFor="budget" className="block text-sm font-medium text-gray-700 mb-1">
               Price Range: €{budgetRange[0]} - €{budgetRange[1]}
             </label>

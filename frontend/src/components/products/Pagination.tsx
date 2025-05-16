@@ -6,6 +6,7 @@ interface PaginationProps {
   totalPages: number;
   onPageChange: (page: number) => void;
   className?: string;
+  id?: string;
 }
 
 const Pagination: React.FC<PaginationProps> = ({
@@ -13,16 +14,18 @@ const Pagination: React.FC<PaginationProps> = ({
   totalPages,
   onPageChange,
   className = '',
+  id,
 }) => {
   if (totalPages <= 1) return null;
 
   return (
-    <div className={`flex justify-center items-center gap-2 ${className}`}>
+    <div className={`flex justify-center items-center gap-2 ${className}`} id={id}>
       <button
         onClick={() => onPageChange(Math.max(currentPage - 1, 1))}
         disabled={currentPage === 1}
         className="p-2 rounded-lg border border-gray-200 bg-white text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
         aria-label="Previous page"
+        id="onboarding-pagination-prev"
       >
         <FiChevronLeft size={20} />
       </button>
@@ -66,6 +69,7 @@ const Pagination: React.FC<PaginationProps> = ({
         disabled={currentPage === totalPages}
         className="p-2 rounded-lg border border-gray-200 bg-white text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
         aria-label="Next page"
+        id="onboarding-pagination-next"
       >
         <FiChevronRight size={20} />
       </button>
