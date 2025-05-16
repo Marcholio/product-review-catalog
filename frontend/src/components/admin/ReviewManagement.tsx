@@ -287,7 +287,7 @@ const ReviewManagement: React.FC = () => {
                               // TODO: Implement reject functionality
                               console.log(`Reject review ${review.id}`);
                             }}
-                            className="ml-3 text-red-600 hover:text-red-900 bg-white"
+                            className="ml-3 text-red-600 hover:text-red-900"
                           >
                             <FiX size={18} />
                           </button>

@@ -112,7 +112,7 @@ const AdminDashboard: React.FC = () => {
             <li>
               <button
                 onClick={() => setActiveTab('dashboard')}
-                className={`w-full flex items-center px-4 py-3 rounded-lg text-left ${
+                className={`w-full flex items-center px-4 py-3 rounded-lg text-left bg-white ${
                   activeTab === 'dashboard' 
                     ? 'bg-blue-50 text-blue-700 font-medium'
                     : 'text-gray-700 hover:bg-gray-50'
@@ -125,7 +125,7 @@ const AdminDashboard: React.FC = () => {
             <li>
               <button
                 onClick={() => setActiveTab('products')}
-                className={`w-full flex items-center px-4 py-3 rounded-lg text-left ${
+                className={`w-full flex items-center px-4 py-3 rounded-lg text-left bg-white ${
                   activeTab === 'products' 
                     ? 'bg-blue-50 text-blue-700 font-medium'
                     : 'text-gray-700 hover:bg-gray-50'
@@ -138,7 +138,7 @@ const AdminDashboard: React.FC = () => {
             <li>
               <button
                 onClick={() => setActiveTab('users')}
-                className={`w-full flex items-center px-4 py-3 rounded-lg text-left ${
+                className={`w-full flex items-center px-4 py-3 rounded-lg text-left bg-white ${
                   activeTab === 'users' 
                     ? 'bg-blue-50 text-blue-700 font-medium'
                     : 'text-gray-700 hover:bg-gray-50'
@@ -151,7 +151,7 @@ const AdminDashboard: React.FC = () => {
             <li>
               <button
                 onClick={() => setActiveTab('reviews')}
-                className={`w-full flex items-center px-4 py-3 rounded-lg text-left ${
+                className={`w-full flex items-center px-4 py-3 rounded-lg text-left bg-white ${
                   activeTab === 'reviews' 
                     ? 'bg-blue-50 text-blue-700 font-medium'
                     : 'text-gray-700 hover:bg-gray-50'
@@ -164,7 +164,7 @@ const AdminDashboard: React.FC = () => {
             <li>
               <button
                 onClick={() => setActiveTab('settings')}
-                className={`w-full flex items-center px-4 py-3 rounded-lg text-left ${
+                className={`w-full flex items-center px-4 py-3 rounded-lg text-left bg-white ${
                   activeTab === 'settings' 
                     ? 'bg-blue-50 text-blue-700 font-medium'
                     : 'text-gray-700 hover:bg-gray-50'
@@ -182,7 +182,7 @@ const AdminDashboard: React.FC = () => {
       <div className="w-full md:hidden bg-white p-4 border-b border-gray-200 flex overflow-x-auto">
         <button
           onClick={() => setActiveTab('dashboard')}
-          className={`flex-shrink-0 px-4 py-2 rounded-lg mr-2 ${
+          className={`flex-shrink-0 px-4 py-2 rounded-lg mr-2 bg-white ${
             activeTab === 'dashboard' 
               ? 'bg-blue-50 text-blue-700 font-medium'
               : 'text-gray-700 hover:bg-gray-50'
@@ -192,7 +192,7 @@ const AdminDashboard: React.FC = () => {
         </button>
         <button
           onClick={() => setActiveTab('products')}
-          className={`flex-shrink-0 px-4 py-2 rounded-lg mr-2 ${
+          className={`flex-shrink-0 px-4 py-2 rounded-lg mr-2 bg-white ${
             activeTab === 'products' 
               ? 'bg-blue-50 text-blue-700 font-medium'
               : 'text-gray-700 hover:bg-gray-50'
@@ -202,7 +202,7 @@ const AdminDashboard: React.FC = () => {
         </button>
         <button
           onClick={() => setActiveTab('users')}
-          className={`flex-shrink-0 px-4 py-2 rounded-lg mr-2 ${
+          className={`flex-shrink-0 px-4 py-2 rounded-lg mr-2 bg-white ${
             activeTab === 'users' 
               ? 'bg-blue-50 text-blue-700 font-medium'
               : 'text-gray-700 hover:bg-gray-50'
@@ -212,7 +212,7 @@ const AdminDashboard: React.FC = () => {
         </button>
         <button
           onClick={() => setActiveTab('reviews')}
-          className={`flex-shrink-0 px-4 py-2 rounded-lg mr-2 ${
+          className={`flex-shrink-0 px-4 py-2 rounded-lg mr-2 bg-white ${
             activeTab === 'reviews' 
               ? 'bg-blue-50 text-blue-700 font-medium'
               : 'text-gray-700 hover:bg-gray-50'
@@ -222,7 +222,7 @@ const AdminDashboard: React.FC = () => {
         </button>
         <button
           onClick={() => setActiveTab('settings')}
-          className={`flex-shrink-0 px-4 py-2 rounded-lg ${
+          className={`flex-shrink-0 px-4 py-2 rounded-lg bg-white ${
             activeTab === 'settings' 
               ? 'bg-blue-50 text-blue-700 font-medium'
               : 'text-gray-700 hover:bg-gray-50'
