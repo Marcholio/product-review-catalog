@@ -83,7 +83,7 @@ const Wishlist = () => {
         <h1 className="text-3xl font-bold">My Wishlist</h1>
         <button
           onClick={() => navigate('/')}
-          className="text-blue-500 hover:text-blue-700"
+          className="text-blue-500 hover:text-blue-700 bg-white px-4 py-2 rounded"
         >
           ← Back to Products
         </button>
@@ -117,7 +117,7 @@ const Wishlist = () => {
                   </span>
                   <button
                     onClick={() => handleRemoveFromWishlist(item.productId)}
-                    className="text-red-500 hover:text-red-700"
+                    className="text-red-500 hover:text-red-700 bg-white px-3 py-1 rounded"
                   >
                     Remove
                   </button>

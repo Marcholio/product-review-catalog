@@ -66,7 +66,7 @@ const Navbar = () => {
                 </div>
                 <button
                   onClick={handleLogout}
-                  className="flex items-center space-x-1 text-gray-600 hover:text-red-600 transition-colors duration-200 px-3 py-2 rounded-md text-sm font-medium"
+                  className="flex items-center space-x-1 text-gray-600 hover:text-red-600 transition-colors duration-200 px-3 py-2 rounded-md text-sm font-medium bg-white"
                 >
                   <FiLogOut className="h-4 w-4" />
                   <span>Logout</span>
@@ -131,7 +131,7 @@ const Navbar = () => {
                 </div>
                 <button
                   onClick={handleLogout}
-                  className="flex w-full items-center space-x-2 px-3 py-2 rounded-md text-base font-medium text-red-600 hover:bg-red-50"
+                  className="flex w-full items-center space-x-2 px-3 py-2 rounded-md text-base font-medium text-red-600 hover:bg-red-50 bg-white"
                 >
                   <FiLogOut className="h-4 w-4" />
                   <span>Logout</span>
