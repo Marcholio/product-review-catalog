@@ -4,6 +4,7 @@ import { generateToken } from '../middleware/auth/index.js';
 import sequelize from '../config/database.js';
 import { QueryTypes } from 'sequelize';
 import bcrypt from 'bcryptjs';
+import { validatePasswordAgainstPolicy } from './passwordPolicyController.js';
 
 interface RawUser {
   id: number;
@@ -27,6 +28,16 @@ export const register = async (req: Request, res: Response) => {
     console.log('- Email:', email);
     console.log('- Password provided:', !!password);
     console.log('- Password length:', password.length);
+    
+    // Validate password against policy
+    const { isValid, errors } = await validatePasswordAgainstPolicy(password);
+    if (!isValid) {
+      return res.status(400).json({ 
+        message: 'Password does not meet security requirements', 
+        errors: errors,
+        field: 'password'
+      });
+    }
 
     const existingUser = await User.findOne({ where: { email } });
     if (existingUser) {
@@ -270,6 +281,17 @@ export const updatePreferences = async (req: Request, res: Response) => {
     // Handle password update if provided
     if (password) {
       console.log('Password update requested');
+      
+      // Validate password against policy
+      const { isValid, errors } = await validatePasswordAgainstPolicy(password);
+      if (!isValid) {
+        return res.status(400).json({ 
+          message: 'Password does not meet security requirements', 
+          errors: errors,
+          field: 'password'
+        });
+      }
+      
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(password, salt);
       console.log('- New password hash length:', hashedPassword.length);

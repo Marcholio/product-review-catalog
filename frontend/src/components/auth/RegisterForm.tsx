@@ -26,8 +26,32 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) => {
     
     if (!values.password) {
       errors.password = 'Password is required';
-    } else if (values.password.length < 6) {
-      errors.password = 'Password must be at least 6 characters long';
+    } else {
+      // More comprehensive password validation will happen on the server
+      // These are just basic frontend validations
+      const password = values.password;
+      
+      if (password.length < 8) {
+        errors.password = 'Password must be at least 8 characters long';
+      } else {
+        let strength = 0;
+        
+        // Check for uppercase letters
+        if (/[A-Z]/.test(password)) strength++;
+        
+        // Check for lowercase letters
+        if (/[a-z]/.test(password)) strength++;
+        
+        // Check for numbers
+        if (/[0-9]/.test(password)) strength++;
+        
+        // Check for special characters
+        if (/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) strength++;
+        
+        if (strength < 3) {
+          errors.password = 'Password must include a mix of uppercase, lowercase, numbers, and special characters';
+        }
+      }
     }
     
     return errors;
@@ -105,7 +129,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) => {
           leftIcon={<FiLock className="h-5 w-5 text-gray-400" />}
           error={formErrors.password || (error?.field === 'password' ? error.message : undefined)}
           placeholder="Create a password"
-          helper="Must be at least 6 characters long"
+          helper="Must be at least 8 characters with a mix of uppercase, lowercase, numbers, and special characters"
         />
 
         {error && !error.field && (

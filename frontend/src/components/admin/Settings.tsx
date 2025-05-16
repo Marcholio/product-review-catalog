@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { API_URL } from '../../config';
 import { Button, Card } from '../ui';
@@ -18,8 +18,46 @@ const Settings: React.FC = () => {
     passwordHistoryCount: 5,
   });
   
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch password policy on component mount
+  useEffect(() => {
+    const fetchPasswordPolicy = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        if (!token) return;
+        
+        const response = await fetch(`${API_URL}/admin/password-policy`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch password policy');
+        }
+        
+        const data = await response.json();
+        
+        if (data.success && data.data) {
+          setSettings(data.data);
+        } else {
+          console.error('Unexpected response format:', data);
+        }
+      } catch (err) {
+        console.error('Error fetching password policy:', err);
+        setError(err instanceof Error ? err.message : 'An error occurred');
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchPasswordPolicy();
+  }, [token]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target as HTMLInputElement;
@@ -35,31 +73,37 @@ const Settings: React.FC = () => {
     try {
       setLoading(true);
       setSaveSuccess(false);
+      setError(null);
       
-      // TODO: In a real application, we would save the settings to the backend
-      // const response = await fetch(`${API_URL}/admin/settings`, {
-      //   method: 'PUT',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //     'Authorization': `Bearer ${token}`
-      //   },
-      //   body: JSON.stringify(settings)
-      // });
+      const response = await fetch(`${API_URL}/admin/password-policy`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(settings)
+      });
       
-      // if (!response.ok) {
-      //   throw new Error('Failed to save settings');
-      // }
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to save password policy');
+      }
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const data = await response.json();
       
-      setSaveSuccess(true);
-      
-      setTimeout(() => {
-        setSaveSuccess(false);
-      }, 3000);
-    } catch (error) {
-      console.error('Error saving settings:', error);
+      if (data.success && data.data) {
+        setSettings(data.data);
+        setSaveSuccess(true);
+        
+        setTimeout(() => {
+          setSaveSuccess(false);
+        }, 3000);
+      } else {
+        throw new Error('Unexpected response format');
+      }
+    } catch (err) {
+      console.error('Error saving password policy:', err);
+      setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setLoading(false);
     }
@@ -82,7 +126,19 @@ const Settings: React.FC = () => {
 
       {saveSuccess && (
         <div className="mb-6 bg-green-100 border border-green-200 text-green-700 px-4 py-3 rounded relative">
-          <span className="block sm:inline">Settings saved successfully.</span>
+          <span className="block sm:inline">Password policy saved successfully.</span>
+        </div>
+      )}
+      
+      {error && (
+        <div className="mb-6 bg-red-100 border border-red-200 text-red-700 px-4 py-3 rounded relative">
+          <span className="block sm:inline">Error: {error}</span>
+        </div>
+      )}
+      
+      {loading && !error && (
+        <div className="mb-6 bg-gray-100 border border-gray-200 text-gray-700 px-4 py-3 rounded relative">
+          <span className="block sm:inline">Loading password policy...</span>
         </div>
       )}
       

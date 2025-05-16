@@ -8,6 +8,10 @@ import {
   deleteReview,
   getDashboardStats
 } from '../controllers/adminController.js';
+import {
+  getPasswordPolicy,
+  updatePasswordPolicy
+} from '../controllers/passwordPolicyController.js';
 import { authenticate, adminAuth } from '../middleware/auth/index.js';
 
 const router = express.Router();
@@ -314,5 +318,133 @@ router.delete('/reviews/:reviewId', authenticate, adminAuth, deleteReview);
  *         description: Server error
  */
 router.get('/dashboard/stats', authenticate, adminAuth, getDashboardStats);
+
+/**
+ * @swagger
+ * /api/admin/password-policy:
+ *   get:
+ *     summary: Get password policy
+ *     description: Get the current password policy settings
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Password policy
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                     minimumPasswordLength:
+ *                       type: integer
+ *                     requireUppercase:
+ *                       type: boolean
+ *                     requireLowercase:
+ *                       type: boolean
+ *                     requireNumbers:
+ *                       type: boolean
+ *                     requireSpecialChars:
+ *                       type: boolean
+ *                     passwordExpiryDays:
+ *                       type: integer
+ *                     preventPasswordReuse:
+ *                       type: boolean
+ *                     passwordHistoryCount:
+ *                       type: integer
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Admin access required
+ *       500:
+ *         description: Server error
+ */
+router.get('/password-policy', authenticate, adminAuth, getPasswordPolicy);
+
+/**
+ * @swagger
+ * /api/admin/password-policy:
+ *   put:
+ *     summary: Update password policy
+ *     description: Update the password policy settings (admin only)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               minimumPasswordLength:
+ *                 type: integer
+ *                 minimum: 6
+ *                 maximum: 32
+ *               requireUppercase:
+ *                 type: boolean
+ *               requireLowercase:
+ *                 type: boolean
+ *               requireNumbers:
+ *                 type: boolean
+ *               requireSpecialChars:
+ *                 type: boolean
+ *               passwordExpiryDays:
+ *                 type: integer
+ *                 minimum: 0
+ *               preventPasswordReuse:
+ *                 type: boolean
+ *               passwordHistoryCount:
+ *                 type: integer
+ *                 minimum: 1
+ *                 maximum: 24
+ *     responses:
+ *       200:
+ *         description: Password policy updated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                     minimumPasswordLength:
+ *                       type: integer
+ *                     requireUppercase:
+ *                       type: boolean
+ *                     requireLowercase:
+ *                       type: boolean
+ *                     requireNumbers:
+ *                       type: boolean
+ *                     requireSpecialChars:
+ *                       type: boolean
+ *                     passwordExpiryDays:
+ *                       type: integer
+ *                     preventPasswordReuse:
+ *                       type: boolean
+ *                     passwordHistoryCount:
+ *                       type: integer
+ *       400:
+ *         description: Invalid input
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Admin access required
+ *       500:
+ *         description: Server error
+ */
+router.put('/password-policy', authenticate, adminAuth, updatePasswordPolicy);
 
 export default router;
