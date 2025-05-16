@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import type { Product } from '../types/ProductType';
-import type { Review } from '../types/ReviewType';
+import type { Review } from '../types/Review';
 import { useAuth } from '../contexts/AuthContext';
 import { API_URL } from '../config';
 import { FiMessageSquare } from 'react-icons/fi';
@@ -87,6 +87,8 @@ const ProductDetails = () => {
     fetchProductAndReviews();
   }, [id, token]);
 
+  const [reviewSubmitted, setReviewSubmitted] = useState(false);
+
   const handleReviewSubmit = async (reviewData: { rating: number; comment: string; userName: string }) => {
     setIsSubmittingReview(true);
     try {
@@ -115,8 +117,14 @@ const ProductDetails = () => {
       const newReview = responseData.success && responseData.data
         ? responseData.data
         : responseData;
-        
-      setReviews([newReview, ...reviews]);
+      
+      // Only add to displayed reviews if it's already approved (which should be rare)
+      if (newReview.status === 'approved') {
+        setReviews([newReview, ...reviews]);
+      }
+      
+      // Set flag to show thank you message
+      setReviewSubmitted(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
@@ -173,6 +181,8 @@ const ProductDetails = () => {
     );
   }
 
+  // Only approved reviews are displayed since they're filtered on the backend
+  // The calculations here only process reviews already filtered to 'approved' status
   const averageRating = reviews.length > 0
     ? (reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length).toFixed(1)
     : 'No ratings yet';
@@ -209,6 +219,7 @@ const ProductDetails = () => {
               isSubmitting={isSubmittingReview}
               userName={user ? user.name : ''}
               isUserLoggedIn={!!user}
+              reviewSubmitted={reviewSubmitted}
             />
           </div>
         </div>

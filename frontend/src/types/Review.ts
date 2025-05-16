@@ -4,6 +4,7 @@ export type Review = {
   rating: number;
   comment: string;
   userName: string;
+  status: 'pending' | 'approved' | 'rejected';
   createdAt: string;
   updatedAt: string;
 }; 

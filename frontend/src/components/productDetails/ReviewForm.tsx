@@ -7,6 +7,7 @@ interface ReviewFormProps {
   isSubmitting: boolean;
   userName: string;
   isUserLoggedIn: boolean;
+  reviewSubmitted?: boolean;
 }
 
 const ReviewForm: React.FC<ReviewFormProps> = ({
@@ -14,6 +15,7 @@ const ReviewForm: React.FC<ReviewFormProps> = ({
   isSubmitting,
   userName,
   isUserLoggedIn,
+  reviewSubmitted = false,
 }) => {
   const [hoverRating, setHoverRating] = useState<number | null>(null);
   const [newReview, setNewReview] = useState({
@@ -31,10 +33,22 @@ const ReviewForm: React.FC<ReviewFormProps> = ({
     <Card variant="default" className="p-6">
       <h3 className="text-xl font-semibold mb-4 text-gray-900 flex items-center">
         <FiStar className="mr-2 text-blue-600" />
-        Write a Review
+        {reviewSubmitted ? 'Thank You for Your Review!' : 'Write a Review'}
       </h3>
       
-      <form onSubmit={handleSubmit}>
+      {reviewSubmitted ? (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4 text-blue-700">
+          <h4 className="font-medium mb-2 flex items-center">
+            <FiCheck className="mr-2" />
+            Your review has been submitted!
+          </h4>
+          <p>
+            Thank you for sharing your opinion! Your review is now pending approval 
+            by our moderators and will be published soon.
+          </p>
+        </div>
+      ) : (
+        <form onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           <div>
             <label className="block text-gray-700 mb-2 font-medium">Your Rating</label>
@@ -114,6 +128,7 @@ const ReviewForm: React.FC<ReviewFormProps> = ({
           Submit Review
         </Button>
       </form>
+      )}
     </Card>
   );
 };

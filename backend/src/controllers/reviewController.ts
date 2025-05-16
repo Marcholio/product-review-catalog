@@ -6,7 +6,10 @@ import { updateProductRating } from '../utils/ratingUtils.js';
 export const getProductReviews = async (req: Request, res: Response) => {
   try {
     const reviews = await Review.findAll({
-      where: { productId: parseInt(req.params.productId, 10) },
+      where: { 
+        productId: parseInt(req.params.productId, 10),
+        status: 'approved' // Only show approved reviews to customers
+      },
       order: [['createdAt', 'DESC']],
     });
     res.json(reviews);
