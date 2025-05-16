@@ -96,13 +96,13 @@ describe('Product Details Page', () => {
     }).as('addToWishlist');
     
     // Click wishlist button
-    cy.findByRole('button', { name: /add to wishlist/i }).click();
+    cy.contains('button', 'Add to Wishlist').click();
     
     // Verify API called
     cy.wait('@addToWishlist');
     
     // Button should now show 'Remove from Wishlist'
-    cy.findByRole('button', { name: /remove from wishlist/i }).should('exist');
+    cy.contains('button', 'Remove from Wishlist').should('exist');
   });
 
   it('allows logged in users to submit reviews', () => {
@@ -143,10 +143,10 @@ describe('Product Details Page', () => {
     cy.get('[aria-label="Rate 5 stars"]').click();
     
     // Type comment
-    cy.findByLabelText(/comment/i).type('Love the quality and comfort!');
+    cy.get('textarea[name="comment"]').type('Love the quality and comfort!');
     
     // Submit review
-    cy.findByRole('button', { name: /submit review/i }).click();
+    cy.contains('button', 'Submit Review').click();
     
     // Verify API called
     cy.wait('@submitReview');

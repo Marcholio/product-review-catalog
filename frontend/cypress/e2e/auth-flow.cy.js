@@ -12,39 +12,39 @@ describe('Authentication Flow', () => {
   it('displays the auth form with login/register toggle', () => {
     // Page should have login form initially
     cy.contains('Sign in to your account').should('be.visible');
-    cy.findByLabelText(/email/i).should('exist');
-    cy.findByLabelText(/password/i).should('exist');
-    cy.findByRole('button', { name: /sign in/i }).should('exist');
+    cy.get('input[name="email"]').should('exist');
+    cy.get('input[name="password"]').should('exist');
+    cy.contains('button', 'Sign in').should('exist');
     
     // Should have option to switch to register
     cy.contains('Create a new account').should('be.visible').click();
     
     // Page should now show register form
     cy.contains('Create an account').should('be.visible');
-    cy.findByLabelText(/name/i).should('exist');
-    cy.findByLabelText(/email/i).should('exist');
-    cy.findByLabelText(/password/i).should('exist');
-    cy.findByLabelText(/confirm password/i).should('exist');
-    cy.findByRole('button', { name: /sign up/i }).should('exist');
+    cy.get('input[name="name"]').should('exist');
+    cy.get('input[name="email"]').should('exist');
+    cy.get('input[name="password"]').should('exist');
+    cy.get('input[name="confirmPassword"]').should('exist');
+    cy.contains('button', 'Sign up').should('exist');
   });
 
   it('validates login form fields', () => {
     // Try submitting with empty fields
-    cy.findByRole('button', { name: /sign in/i }).click();
+    cy.contains('button', 'Sign in').click();
     
     // Should show validation errors
     cy.contains('Email is required').should('be.visible');
     cy.contains('Password is required').should('be.visible');
     
     // Try with invalid email
-    cy.findByLabelText(/email/i).type('invalid-email');
-    cy.findByRole('button', { name: /sign in/i }).click();
+    cy.get('input[name="email"]').type('invalid-email');
+    cy.contains('button', 'Sign in').click();
     cy.contains('Please enter a valid email address').should('be.visible');
     
     // Try with short password
-    cy.findByLabelText(/email/i).clear().type('valid@example.com');
-    cy.findByLabelText(/password/i).type('12345');
-    cy.findByRole('button', { name: /sign in/i }).click();
+    cy.get('input[name="email"]').clear().type('valid@example.com');
+    cy.get('input[name="password"]').type('12345');
+    cy.contains('button', 'Sign in').click();
     cy.contains('Password must be at least 6 characters long').should('be.visible');
   });
 
@@ -66,9 +66,9 @@ describe('Authentication Flow', () => {
     }).as('loginRequest');
     
     // Fill and submit login form
-    cy.findByLabelText(/email/i).type('test@example.com');
-    cy.findByLabelText(/password/i).type('password123');
-    cy.findByRole('button', { name: /sign in/i }).click();
+    cy.get('input[name="email"]').type('test@example.com');
+    cy.get('input[name="password"]').type('password123');
+    cy.contains('button', 'Sign in').click();
     
     // Wait for API call
     cy.wait('@loginRequest');
@@ -95,9 +95,9 @@ describe('Authentication Flow', () => {
     }).as('loginRequest');
     
     // Fill and submit login form
-    cy.findByLabelText(/email/i).type('wrong@example.com');
-    cy.findByLabelText(/password/i).type('wrongpassword');
-    cy.findByRole('button', { name: /sign in/i }).click();
+    cy.get('input[name="email"]').type('wrong@example.com');
+    cy.get('input[name="password"]').type('wrongpassword');
+    cy.contains('button', 'Sign in').click();
     
     // Wait for API call
     cy.wait('@loginRequest');

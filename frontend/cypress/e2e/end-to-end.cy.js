@@ -31,7 +31,7 @@ describe('End-to-End User Flow', () => {
     cy.wait('@getCategories');
     
     // 2. Navigate to auth page
-    cy.findByRole('link', { name: /login/i }).click();
+    cy.contains('a', 'Login').click();
     cy.url().should('include', '/auth');
     
     // 3. Switch to registration form
@@ -54,11 +54,11 @@ describe('End-to-End User Flow', () => {
     }).as('registerRequest');
     
     // 5. Fill and submit registration form
-    cy.findByLabelText(/name/i).type(user.name);
-    cy.findByLabelText(/email/i).type(user.email);
-    cy.findByLabelText(/password/i).type(user.password);
-    cy.findByLabelText(/confirm password/i).type(user.password);
-    cy.findByRole('button', { name: /sign up/i }).click();
+    cy.get('input[name="name"]').type(user.name);
+    cy.get('input[name="email"]').type(user.email);
+    cy.get('input[name="password"]').type(user.password);
+    cy.get('input[name="confirmPassword"]').type(user.password);
+    cy.contains('button', 'Sign up').click();
     
     // 6. Wait for registration and redirect to homepage
     cy.wait('@registerRequest');
@@ -120,7 +120,7 @@ describe('End-to-End User Flow', () => {
       }
     }).as('addToWishlist');
     
-    cy.findByRole('button', { name: /add to wishlist/i }).click();
+    cy.contains('button', 'Add to Wishlist').click();
     cy.wait('@addToWishlist');
     
     // 11. Submit a review for the product
@@ -144,10 +144,10 @@ describe('End-to-End User Flow', () => {
     cy.get('[aria-label="Rate 4 stars"]').click();
     
     // Add review comment
-    cy.findByLabelText(/comment/i).type('Very comfortable and great sound quality!');
+    cy.get('textarea[name="comment"]').type('Very comfortable and great sound quality!');
     
     // Submit the review
-    cy.findByRole('button', { name: /submit review/i }).click();
+    cy.contains('button', 'Submit Review').click();
     
     // Wait for submission
     cy.wait('@submitReview');
@@ -179,7 +179,7 @@ describe('End-to-End User Flow', () => {
       }
     }).as('getWishlist');
     
-    cy.findByRole('link', { name: /wishlist/i }).click();
+    cy.contains('a', 'Wishlist').click();
     
     // 13. Check wishlist contains the product
     cy.wait('@getWishlist');
@@ -187,10 +187,10 @@ describe('End-to-End User Flow', () => {
     cy.contains(testProduct.name).should('be.visible');
     
     // 14. Log out
-    cy.findByRole('button', { name: /logout/i }).click();
+    cy.contains('button', 'Logout').click();
     
     // 15. Verify logged out state
     cy.contains(user.name).should('not.exist');
-    cy.findByRole('link', { name: /login/i }).should('be.visible');
+    cy.contains('a', 'Login').should('be.visible');
   });
 });

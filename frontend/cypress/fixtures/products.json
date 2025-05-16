@@ -1,38 +1,54 @@
-[
-  {
-    "id": 1,
-    "name": "Premium Headphones",
-    "description": "High-quality over-ear headphones with noise cancellation",
-    "price": 249.99,
-    "image": "https://example.com/headphones.jpg",
-    "category": "Electronics",
-    "stock": 42,
-    "rating": 4.7,
-    "createdAt": "2023-05-15T08:30:00.000Z",
-    "updatedAt": "2023-07-02T14:45:00.000Z"
-  },
-  {
-    "id": 2,
-    "name": "Ergonomic Office Chair",
-    "description": "Adjustable office chair with lumbar support and breathable mesh",
-    "price": 189.99,
-    "image": "https://example.com/chair.jpg",
-    "category": "Furniture",
-    "stock": 15,
-    "rating": 4.5,
-    "createdAt": "2023-04-22T10:15:00.000Z",
-    "updatedAt": "2023-06-18T09:30:00.000Z"
-  },
-  {
-    "id": 3,
-    "name": "Smart Watch Pro",
-    "description": "Waterproof smartwatch with heart rate monitoring and GPS",
-    "price": 299.99,
-    "image": "https://example.com/smartwatch.jpg",
-    "category": "Electronics",
-    "stock": 28,
-    "rating": 4.8,
-    "createdAt": "2023-05-30T15:45:00.000Z",
-    "updatedAt": "2023-07-05T11:20:00.000Z"
-  }
-]
+{
+  "success": true,
+  "data": [
+    {
+      "id": 1,
+      "name": "Premium Headphones",
+      "description": "High-quality over-ear headphones with noise cancellation",
+      "price": 249.99,
+      "image": "https://example.com/headphones.jpg",
+      "category": "Electronics",
+      "stock": 42,
+      "rating": 4.7,
+      "createdAt": "2023-05-15T08:30:00.000Z",
+      "updatedAt": "2023-07-02T14:45:00.000Z"
+    },
+    {
+      "id": 2,
+      "name": "Modern Coffee Table",
+      "description": "Sleek minimalist coffee table with storage",
+      "price": 149.95,
+      "image": "https://example.com/coffee-table.jpg",
+      "category": "Furniture",
+      "stock": 15,
+      "rating": 4.2,
+      "createdAt": "2023-04-20T10:15:00.000Z",
+      "updatedAt": "2023-06-18T11:30:00.000Z"
+    },
+    {
+      "id": 3,
+      "name": "Smart Watch Pro",
+      "description": "Waterproof smartwatch with heart rate monitoring and GPS",
+      "price": 299.99,
+      "image": "https://example.com/smartwatch.jpg",
+      "category": "Electronics",
+      "stock": 28,
+      "rating": 4.8,
+      "createdAt": "2023-03-12T14:45:00.000Z",
+      "updatedAt": "2023-05-30T09:20:00.000Z"
+    },
+    {
+      "id": 4,
+      "name": "Casual Denim Jacket",
+      "description": "Classic denim jacket with modern fit",
+      "price": 79.99,
+      "image": "https://example.com/denim-jacket.jpg",
+      "category": "Clothing",
+      "stock": 65,
+      "rating": 4.5,
+      "createdAt": "2023-02-28T16:20:00.000Z",
+      "updatedAt": "2023-04-15T15:10:00.000Z"
+    }
+  ]
+}
+EOF < /dev/null
