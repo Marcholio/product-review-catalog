@@ -1,4 +1,4 @@
-import type { Product } from './Product';
+import type { Product } from './index';
 
 export type WishlistItem = {
   id: number;

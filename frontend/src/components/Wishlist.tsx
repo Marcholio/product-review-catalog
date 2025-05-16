@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { WishlistItem } from '../types/Wishlist';
+import type { WishlistItem } from '../types/WishlistType';
 import { useAuth } from '../contexts/AuthContext';
 import { API_URL } from '../config';
 
