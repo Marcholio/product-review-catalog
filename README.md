@@ -1,5 +1,7 @@
 # Product Review Catalog
 
+This is the only line written by a human in this entire repository. Everything else has been created with Claude 3.7 Sonnet.
+
 A full-stack TypeScript application for browsing products, submitting reviews, and managing wishlists.
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
@@ -17,6 +19,7 @@ A full-stack TypeScript application for browsing products, submitting reviews, a
 ## 🚀 Tech Stack
 
 ### Frontend
+
 - React with TypeScript
 - React Router for navigation
 - Context API for state management
@@ -24,6 +27,7 @@ A full-stack TypeScript application for browsing products, submitting reviews, a
 - Vite for build tooling
 
 ### Backend
+
 - Node.js with Express
 - TypeScript with ESM modules
 - Sequelize ORM for database operations
@@ -31,10 +35,12 @@ A full-stack TypeScript application for browsing products, submitting reviews, a
 - OpenAPI/Swagger documentation
 
 ### Database
+
 - PostgreSQL
 - Sequelize ORM
 
 ### DevOps
+
 - Docker & Docker Compose
 - Environment-based configuration
 
@@ -72,14 +78,17 @@ A full-stack TypeScript application for browsing products, submitting reviews, a
 1. **Clone the repository**
 
 2. **Start the database:**
+
    ```bash
    docker-compose up -d db
    ```
 
 3. **Set up environment variables:**
+
    - Create `.env` files in both the `frontend` and `backend` directories using the examples below
 
 4. **Install and start the backend:**
+
    ```bash
    cd backend
    npm install
@@ -124,6 +133,7 @@ The API documentation is available at http://localhost:3000/api-docs when the ba
 ### Backend
 
 The backend follows a typical Express MVC pattern:
+
 - `src/models/` - Sequelize ORM models (Product, Review, User, Wishlist)
 - `src/controllers/` - Request handlers
 - `src/routes/` - API route definitions
@@ -131,6 +141,7 @@ The backend follows a typical Express MVC pattern:
 - `src/config/` - Database, security, and Swagger configuration
 
 Key features:
+
 - TypeScript with ESM modules
 - Sequelize ORM for database operations
 - JWT authentication
@@ -140,12 +151,14 @@ Key features:
 ### Frontend
 
 The frontend is a React application built with:
+
 - TypeScript
 - React Router for navigation
 - Context API for state management (AuthContext, CartContext)
 - Tailwind CSS for styling
 
 The component structure includes:
+
 - Product browsing and filtering (ProductList)
 - Product details with reviews (ProductDetails)
 - User authentication (AuthForm)
@@ -156,6 +169,7 @@ The component structure includes:
 ### Database Schema
 
 The primary models are:
+
 - **Product**: Product catalog items with name, description, price, etc.
 - **User**: User accounts with authentication details
 - **Review**: Product reviews with ratings
@@ -199,20 +213,24 @@ VITE_API_URL=http://localhost:3000/api
 The API includes the following main endpoints:
 
 - **Products**: `/api/products`
+
   - GET `/api/products` - List all products with filters and pagination
   - GET `/api/products/categories` - Get all product categories
   - GET `/api/products/:id` - Get product details by ID
 
 - **Reviews**: `/api/reviews`
+
   - GET `/api/reviews/product/:id` - Get reviews for a product
   - POST `/api/reviews/product/:id` - Add a review to a product
 
 - **Users**: `/api/users`
+
   - POST `/api/users/register` - Register a new user
   - POST `/api/users/login` - Authenticate a user
   - PATCH `/api/users/preferences` - Update user preferences
 
 - **Wishlist**: `/api/wishlist`
+
   - GET `/api/wishlist` - Get user's wishlist
   - POST `/api/wishlist/product/:id` - Add product to wishlist
   - DELETE `/api/wishlist/product/:id` - Remove product from wishlist
