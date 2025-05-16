@@ -4,52 +4,47 @@ import { API_URL } from '../../config';
 import { Button, Card } from '../ui';
 import { FiPlus, FiEdit2, FiTrash2, FiSearch } from 'react-icons/fi';
 import ImageWithFallback from '../ImageWithFallback';
-
-interface Product {
-  id: number;
-  name: string;
-  price: number | string;
-  category: string;
-  imageUrl: string;
-  rating: number;
-  reviewCount: number;
-}
+import ProductForm from './ProductForm';
+import type { Product as ProductType } from '../../types/Product';
 
 const ProductManagement: React.FC = () => {
   const { token } = useAuth();
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<ProductType[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<ProductType | null>(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch(`${API_URL}/products?limit=100`);
-        
-        if (!response.ok) {
-          throw new Error('Failed to fetch products');
-        }
-        
-        const data = await response.json();
-        
-        // Handle new response format with data field
-        const productData = data.success && data.data 
-          ? data.data.products 
-          : data.products;
-          
-        setProducts(Array.isArray(productData) ? productData : []);
-      } catch (error) {
-        console.error('Error fetching products:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    
     fetchProducts();
   }, []);
+  
+  // Function to fetch products
+  const fetchProducts = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`${API_URL}/products?limit=100`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch products');
+      }
+      
+      const data = await response.json();
+      
+      // Handle new response format with data field
+      const productData = data.success && data.data 
+        ? data.data.products 
+        : data.products;
+        
+      setProducts(Array.isArray(productData) ? productData : []);
+    } catch (error) {
+      console.error('Error fetching products:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Filter products based on search query
   const filteredProducts = products.filter(product => 
@@ -171,13 +166,7 @@ const ProductManagement: React.FC = () => {
                         <FiEdit2 size={18} />
                       </button>
                       <button 
-                        onClick={() => {
-                          // Handle delete confirmation
-                          if (window.confirm(`Are you sure you want to delete ${product.name}?`)) {
-                            // TODO: Implement delete functionality
-                            console.log(`Delete product ${product.id}`);
-                          }
-                        }}
+                        onClick={() => handleDeleteProduct(product)}
                         className="text-red-600 hover:text-red-900 bg-white"
                       >
                         <FiTrash2 size={18} />
@@ -191,40 +180,112 @@ const ProductManagement: React.FC = () => {
         </div>
       </Card>
 
-      {/* Product edit form would go here */}
+      {/* Product edit/create form */}
       {isEditing && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <Card variant="elevated" className="w-full max-w-2xl p-6">
             <h3 className="text-xl font-bold mb-4">
               {selectedProduct ? 'Edit Product' : 'Add New Product'}
             </h3>
-            <p className="mb-4 text-gray-700">
-              This is a placeholder for the product edit form. In a real implementation, 
-              this would contain a form to edit all product details.
-            </p>
-            <div className="flex justify-end mt-6">
-              <Button 
-                variant="secondary" 
-                onClick={() => setIsEditing(false)}
-                className="mr-2"
-              >
-                Cancel
-              </Button>
-              <Button 
-                variant="primary" 
-                onClick={() => {
-                  // TODO: Implement save functionality
-                  setIsEditing(false);
-                }}
-              >
-                Save Product
-              </Button>
-            </div>
+            
+            {error && (
+              <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+                {error}
+              </div>
+            )}
+            
+            <ProductForm
+              product={selectedProduct || undefined}
+              onSubmit={handleSubmitProduct}
+              onCancel={() => {
+                setIsEditing(false);
+                setError(null);
+              }}
+              isSubmitting={isSubmitting}
+            />
           </Card>
         </div>
       )}
     </div>
   );
+  
+  // Function to handle product submission (create or update)
+  async function handleSubmitProduct(productData: Omit<ProductType, 'id' | 'rating' | 'reviewCount' | 'createdAt' | 'updatedAt'>) {
+    if (!token) {
+      setError('You must be logged in to perform this action');
+      return;
+    }
+    
+    setIsSubmitting(true);
+    setError(null);
+    
+    try {
+      const url = selectedProduct 
+        ? `${API_URL}/products/${selectedProduct.id}`
+        : `${API_URL}/products`;
+      
+      const method = selectedProduct ? 'PUT' : 'POST';
+      
+      const response = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(productData)
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to save product');
+      }
+      
+      // Refresh product list
+      await fetchProducts();
+      
+      // Close the modal
+      setIsEditing(false);
+      setSelectedProduct(null);
+    } catch (err) {
+      console.error('Error saving product:', err);
+      setError(err instanceof Error ? err.message : 'Failed to save product');
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+  
+  // Function to handle product deletion
+  async function handleDeleteProduct(product: ProductType) {
+    if (!token) {
+      setError('You must be logged in to perform this action');
+      return;
+    }
+    
+    // Confirm deletion
+    if (!window.confirm(`Are you sure you want to delete ${product.name}?`)) {
+      return;
+    }
+    
+    try {
+      const response = await fetch(`${API_URL}/products/${product.id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to delete product');
+      }
+      
+      // Refresh product list
+      await fetchProducts();
+    } catch (err) {
+      console.error('Error deleting product:', err);
+      window.alert(err instanceof Error ? err.message : 'Failed to delete product');
+    }
+  }
 };
 
 export default ProductManagement;
