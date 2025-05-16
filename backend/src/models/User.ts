@@ -53,7 +53,10 @@ class User extends Model<UserAttributes> implements UserAttributes {
   }
   
   get safeIsAdmin(): boolean {
-    return this.isAdmin || this.getDataValue('isAdmin') || false;
+    // Using || is problematic as it could interpret false as falsy and return next value
+    const isAdmin = this.isAdmin !== undefined ? this.isAdmin : this.getDataValue('isAdmin');
+    // Cast the result explicitly to boolean
+    return isAdmin === true;
   }
   
   get safePreferences(): any {

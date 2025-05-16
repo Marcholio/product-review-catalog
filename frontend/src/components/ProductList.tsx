@@ -161,7 +161,10 @@ const ProductList: React.FC = () => {
     setSortBy(newSort);
     if (user && token) {
       try {
-        await updatePreferences({ defaultSort: newSort });
+        // Only update if the value is non-empty
+        if (newSort && newSort.trim() !== '') {
+          await updatePreferences({ defaultSort: newSort });
+        }
       } catch (err) {
         console.error('Error updating sort preference:', err);
         if (err instanceof Error && err.message !== 'Not authenticated') {
@@ -175,6 +178,7 @@ const ProductList: React.FC = () => {
     setSelectedCategory(category);
     if (user && token) {
       try {
+        // Always send a string value, even if empty
         await updatePreferences({ defaultCategory: category });
       } catch (err) {
         console.error('Error updating category preference:', err);
@@ -199,13 +203,26 @@ const ProductList: React.FC = () => {
   const handleBudgetRangeBlur = useCallback(async () => {
     if (user && token) {
       try {
-        // Create a local copy of user before update
-        const currentUser = { ...user };
+        // Only update preferences with actual values (not undefined)
+        const prefsToUpdate: Partial<UserPreferences> = {};
         
-        await updatePreferences({
-          minBudget: budgetRange[0] > 0 ? budgetRange[0] : undefined,
-          maxBudget: budgetRange[1] < MAX_PRICE && budgetRange[1] !== MAX_PRICE ? budgetRange[1] : undefined
-        });
+        // Only set minBudget if it's greater than 0
+        if (budgetRange[0] > 0) {
+          prefsToUpdate.minBudget = budgetRange[0];
+        } else {
+          // Explicitly set to 0 rather than undefined
+          prefsToUpdate.minBudget = 0;
+        }
+        
+        // Only set maxBudget if it's less than MAX_PRICE
+        if (budgetRange[1] < MAX_PRICE) {
+          prefsToUpdate.maxBudget = budgetRange[1];
+        } else {
+          // Explicitly set to MAX_PRICE rather than undefined
+          prefsToUpdate.maxBudget = MAX_PRICE;
+        }
+        
+        await updatePreferences(prefsToUpdate);
       } catch (err) {
         console.error('Error updating budget preferences:', err);
         if (err instanceof Error && err.message !== 'Not authenticated') {

@@ -27,11 +27,30 @@ export const generateToken = (user: User | any): string => {
     throw new InternalServerError('Invalid user data for token generation');
   }
 
+  // Check multiple ways to get the isAdmin value
+  let isAdmin = false;
+  
+  if (typeof user?.safeIsAdmin === 'function') {
+    isAdmin = user.safeIsAdmin();
+  } else if (user?.isAdmin !== undefined) {
+    isAdmin = !!user.isAdmin;
+  } else if (user?.dataValues?.isAdmin !== undefined) {
+    isAdmin = !!user.dataValues.isAdmin;
+  }
+  
+  console.log('Token Generation - Admin Status:', {
+    userId,
+    userEmail,
+    isAdmin,
+    originalValue: user?.isAdmin,
+    type: typeof user?.isAdmin
+  });
+  
   // Create token payload
   const payload: TokenPayload = {
     id: userId,
     email: userEmail,
-    isAdmin: user?.isAdmin || false
+    isAdmin: isAdmin
   };
 
   // Set JWT options

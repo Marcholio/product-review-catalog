@@ -174,22 +174,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLoading(true);
     
     try {
-      // Save current user information in case the API call fails
-      const currentUser = user;
+      // Make sure we only send non-null and non-undefined values to the backend
+      const cleanedPreferences: Partial<UserPreferences> = {};
+      Object.entries(preferences).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          cleanedPreferences[key as keyof UserPreferences] = value;
+        }
+      });
       
-      const data = await api.request('/users/preferences', {
+      // Send the API request with cleaned preferences
+      const response = await api.request('/users/preferences', {
         method: 'PATCH',
-        body: { preferences },
+        body: { preferences: cleanedPreferences },
         requiresAuth: true,
         token: token,
       });
       
-      if (data.user) {
-        // Preserve the admin status if it's not in the response
+      // If we received a valid response
+      if (response && response.user) {
+        // To prevent losing admin status or other fields, keep the current user
+        // intact and only update the preferences that were changed
         const updatedUser = {
-          ...data.user,
-          // If the isAdmin field is lost in the response, keep the original value
-          isAdmin: data.user.isAdmin !== undefined ? data.user.isAdmin : currentUser?.isAdmin || false
+          ...user!,  // Keep all current user data intact
+          // Only update preferences that were actually changed
+          preferences: {
+            ...user!.preferences,  // Keep current preferences
+            ...cleanedPreferences  // Add the new ones
+          }
         };
         
         setUser(updatedUser);

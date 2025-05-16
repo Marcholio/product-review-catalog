@@ -345,19 +345,31 @@ export const updatePreferences = async (req: Request, res: Response) => {
     console.log('- Updated user:', {
       id: updatedUser.id,
       email: updatedUser.email,
+      name: updatedUser.name,
+      isAdmin: !!updatedUser.isAdmin,
       preferences: updatedUser.preferences
     });
+    
+    // Directly log raw user data to see exactly what's available
+    console.log('- Raw updatedUser data:', JSON.stringify(updatedUser));
+    console.log('- Raw isAdmin value from database:', updatedUser.isAdmin);
+    console.log('- isAdmin type:', typeof updatedUser.isAdmin);
 
+    // Build response carefully with all required fields
     // Ensure we preserve the isAdmin status
+    const responseUser = {
+      id: updatedUser.id,
+      email: updatedUser.email,
+      name: updatedUser.name,
+      // Make sure we explicitly set isAdmin from the database value
+      isAdmin: !!updatedUser.isAdmin, // Convert to boolean explicitly
+      preferences: updatedUser.preferences,
+    };
+    
+    console.log('- Sending user response:', responseUser);
+    
     res.json({
-      user: {
-        id: updatedUser.id,
-        email: updatedUser.email,
-        name: updatedUser.name,
-        // Make sure we explicitly set isAdmin from the database value
-        isAdmin: updatedUser.isAdmin || false,
-        preferences: updatedUser.preferences,
-      },
+      user: responseUser,
     });
   } catch (error) {
     console.error('Update preferences error:', error);

@@ -76,6 +76,21 @@ export const authenticate = asyncHandler(async (
   // Set all fields from the raw data
   Object.assign(userInstance, user);
 
+  // Ensure isAdmin is explicitly set as a boolean
+  if (userInstance.isAdmin === undefined || userInstance.isAdmin === null) {
+    console.log('Warning: isAdmin is undefined or null for user', decoded.id);
+    userInstance.isAdmin = false;
+  } else {
+    // Convert to boolean explicitly
+    userInstance.isAdmin = !!userInstance.isAdmin;
+  }
+  
+  console.log('Auth middleware - User loaded:', {
+    id: userInstance.id,
+    isAdmin: userInstance.isAdmin,
+    type: typeof userInstance.isAdmin
+  });
+  
   // Attach user to request
   req.user = userInstance;
   next();
@@ -144,6 +159,22 @@ export const optionalAuth = asyncHandler(async (
       const userInstance = User.build(user, { isNewRecord: false });
       Object.defineProperty(userInstance, 'isNewRecord', { value: false });
       Object.assign(userInstance, user);
+      
+      // Ensure isAdmin is explicitly set as a boolean
+      if (userInstance.isAdmin === undefined || userInstance.isAdmin === null) {
+        console.log('Warning: isAdmin is undefined or null for user in optionalAuth', decoded.id);
+        userInstance.isAdmin = false;
+      } else {
+        // Convert to boolean explicitly
+        userInstance.isAdmin = !!userInstance.isAdmin;
+      }
+      
+      console.log('Optional auth middleware - User loaded:', {
+        id: userInstance.id,
+        isAdmin: userInstance.isAdmin,
+        type: typeof userInstance.isAdmin
+      });
+      
       req.user = userInstance;
     }
   } catch (error) {
