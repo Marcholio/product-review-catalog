@@ -2,17 +2,20 @@ import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { API_URL } from '../../config';
 import { Button, Card } from '../ui';
-import { FiSave, FiRefreshCw } from 'react-icons/fi';
+import { FiSave, FiLock, FiInfo } from 'react-icons/fi';
 
 const Settings: React.FC = () => {
   const { token } = useAuth();
   const [settings, setSettings] = useState({
-    enableUserRegistration: true,
-    productReviewsRequireApproval: true,
-    maxUploadSizeMB: 5,
-    defaultProductSortOrder: 'newest',
-    autoDeleteInactiveAccounts: false,
-    inactiveAccountMonths: 12,
+    // Password Settings
+    minimumPasswordLength: 8,
+    requireUppercase: true,
+    requireLowercase: true,
+    requireNumbers: true,
+    requireSpecialChars: true,
+    passwordExpiryDays: 90,
+    preventPasswordReuse: true,
+    passwordHistoryCount: 5,
   });
   
   const [loading, setLoading] = useState(false);
@@ -82,140 +85,193 @@ const Settings: React.FC = () => {
           <span className="block sm:inline">Settings saved successfully.</span>
         </div>
       )}
-
+      
       <Card variant="default" className="mb-6">
         <div className="p-6">
-          <h3 className="text-lg font-semibold mb-4">User Settings</h3>
-          <div className="space-y-4">
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                id="enableUserRegistration"
-                name="enableUserRegistration"
-                checked={settings.enableUserRegistration}
-                onChange={handleInputChange}
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-              />
-              <label htmlFor="enableUserRegistration" className="ml-2 block text-sm text-gray-900">
-                Enable user registration
-              </label>
+          <div className="flex items-center mb-4">
+            <FiLock className="mr-2 text-blue-600" />
+            <h3 className="text-lg font-semibold">Password Security Settings</h3>
+          </div>
+          
+          <div className="space-y-6">
+            <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <FiInfo className="h-5 w-5 text-blue-400" />
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm text-blue-700">
+                    These settings determine the password requirements for all users of the application.
+                    Changes will apply to new passwords and password resets.
+                  </p>
+                </div>
+              </div>
             </div>
             
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                id="autoDeleteInactiveAccounts"
-                name="autoDeleteInactiveAccounts"
-                checked={settings.autoDeleteInactiveAccounts}
-                onChange={handleInputChange}
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-              />
-              <label htmlFor="autoDeleteInactiveAccounts" className="ml-2 block text-sm text-gray-900">
-                Automatically delete inactive accounts
+            <div>
+              <label htmlFor="minimumPasswordLength" className="block text-sm font-medium text-gray-700 mb-1">
+                Minimum Password Length
               </label>
-            </div>
-            
-            {settings.autoDeleteInactiveAccounts && (
-              <div className="ml-6">
-                <label htmlFor="inactiveAccountMonths" className="block text-sm text-gray-700 mb-1">
-                  Delete accounts inactive for (months):
-                </label>
+              <div className="flex items-center">
                 <input
                   type="number"
-                  id="inactiveAccountMonths"
-                  name="inactiveAccountMonths"
-                  value={settings.inactiveAccountMonths}
+                  id="minimumPasswordLength"
+                  name="minimumPasswordLength"
+                  value={settings.minimumPasswordLength}
                   onChange={handleInputChange}
-                  min="1"
-                  max="36"
-                  className="mt-1 block w-32 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border bg-white text-gray-900"
+                  min="6"
+                  max="32"
+                  className="block w-24 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border bg-white text-gray-900"
                 />
+                <span className="ml-2 text-sm text-gray-500">characters</span>
               </div>
-            )}
-          </div>
-        </div>
-      </Card>
-
-      <Card variant="default" className="mb-6">
-        <div className="p-6">
-          <h3 className="text-lg font-semibold mb-4">Product & Review Settings</h3>
-          <div className="space-y-4">
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                id="productReviewsRequireApproval"
-                name="productReviewsRequireApproval"
-                checked={settings.productReviewsRequireApproval}
-                onChange={handleInputChange}
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-              />
-              <label htmlFor="productReviewsRequireApproval" className="ml-2 block text-sm text-gray-900">
-                Require approval for product reviews
-              </label>
             </div>
             
-            <div>
-              <label htmlFor="defaultProductSortOrder" className="block text-sm text-gray-700 mb-1">
-                Default product sort order:
-              </label>
-              <select
-                id="defaultProductSortOrder"
-                name="defaultProductSortOrder"
-                value={settings.defaultProductSortOrder}
-                onChange={handleInputChange}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border bg-white text-gray-900"
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="requireUppercase"
+                  name="requireUppercase"
+                  checked={settings.requireUppercase}
+                  onChange={handleInputChange}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                <label htmlFor="requireUppercase" className="ml-2 block text-sm text-gray-900">
+                  Require uppercase letters
+                </label>
+              </div>
+              
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="requireLowercase"
+                  name="requireLowercase"
+                  checked={settings.requireLowercase}
+                  onChange={handleInputChange}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                <label htmlFor="requireLowercase" className="ml-2 block text-sm text-gray-900">
+                  Require lowercase letters
+                </label>
+              </div>
+              
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="requireNumbers"
+                  name="requireNumbers"
+                  checked={settings.requireNumbers}
+                  onChange={handleInputChange}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                <label htmlFor="requireNumbers" className="ml-2 block text-sm text-gray-900">
+                  Require numbers
+                </label>
+              </div>
+              
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="requireSpecialChars"
+                  name="requireSpecialChars"
+                  checked={settings.requireSpecialChars}
+                  onChange={handleInputChange}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                <label htmlFor="requireSpecialChars" className="ml-2 block text-sm text-gray-900">
+                  Require special characters
+                </label>
+              </div>
+            </div>
+            
+            <div className="border-t border-gray-200 pt-4">
+              <div>
+                <label htmlFor="passwordExpiryDays" className="block text-sm font-medium text-gray-700 mb-1">
+                  Password Expiry Period
+                </label>
+                <div className="flex items-center">
+                  <input
+                    type="number"
+                    id="passwordExpiryDays"
+                    name="passwordExpiryDays"
+                    value={settings.passwordExpiryDays}
+                    onChange={handleInputChange}
+                    min="0"
+                    max="365"
+                    className="block w-24 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border bg-white text-gray-900"
+                  />
+                  <span className="ml-2 text-sm text-gray-500">days (0 = never expires)</span>
+                </div>
+              </div>
+              
+              <div className="mt-4">
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id="preventPasswordReuse"
+                    name="preventPasswordReuse"
+                    checked={settings.preventPasswordReuse}
+                    onChange={handleInputChange}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  />
+                  <label htmlFor="preventPasswordReuse" className="ml-2 block text-sm text-gray-900">
+                    Prevent password reuse
+                  </label>
+                </div>
+                
+                {settings.preventPasswordReuse && (
+                  <div className="mt-2 ml-6">
+                    <label htmlFor="passwordHistoryCount" className="block text-sm text-gray-700 mb-1">
+                      Remember previous passwords:
+                    </label>
+                    <div className="flex items-center">
+                      <input
+                        type="number"
+                        id="passwordHistoryCount"
+                        name="passwordHistoryCount"
+                        value={settings.passwordHistoryCount}
+                        onChange={handleInputChange}
+                        min="1"
+                        max="24"
+                        className="block w-24 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border bg-white text-gray-900"
+                      />
+                      <span className="ml-2 text-sm text-gray-500">most recent passwords</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            <div className="mt-4 flex items-center">
+              <Button 
+                variant="secondary" 
+                size="sm"
+                onClick={() => {
+                  // Calculate password strength based on settings
+                  const entropy = 
+                    Math.log2(
+                      Math.pow(26, settings.requireLowercase ? 1 : 0) * 
+                      Math.pow(26, settings.requireUppercase ? 1 : 0) * 
+                      Math.pow(10, settings.requireNumbers ? 1 : 0) * 
+                      Math.pow(32, settings.requireSpecialChars ? 1 : 0)
+                    ) * settings.minimumPasswordLength;
+                    
+                  let strength = "Weak";
+                  if (entropy > 60) strength = "Strong";
+                  else if (entropy > 40) strength = "Medium";
+                  
+                  alert(`Based on current settings, password strength: ${strength} (Entropy: ${entropy.toFixed(2)} bits)`);
+                }}
               >
-                <option value="newest">Newest first</option>
-                <option value="oldest">Oldest first</option>
-                <option value="price_asc">Price: Low to High</option>
-                <option value="price_desc">Price: High to Low</option>
-                <option value="rating">Highest Rated</option>
-                <option value="popularity">Most Popular</option>
-              </select>
-            </div>
-            
-            <div>
-              <label htmlFor="maxUploadSizeMB" className="block text-sm text-gray-700 mb-1">
-                Maximum upload size (MB):
-              </label>
-              <input
-                type="number"
-                id="maxUploadSizeMB"
-                name="maxUploadSizeMB"
-                value={settings.maxUploadSizeMB}
-                onChange={handleInputChange}
-                min="1"
-                max="20"
-                className="mt-1 block w-32 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border bg-white text-gray-900"
-              />
+                Estimate Password Strength
+              </Button>
+              <span className="ml-2 text-sm text-gray-500">Tests the strength of passwords based on current settings</span>
             </div>
           </div>
         </div>
       </Card>
 
-      <Card variant="default" className="mb-6">
-        <div className="p-6">
-          <h3 className="text-lg font-semibold mb-4">System Maintenance</h3>
-          <div className="space-y-4">
-            <Button 
-              variant="secondary" 
-              leftIcon={<FiRefreshCw />}
-              onClick={() => {
-                // TODO: Implement cache clearing
-                console.log('Clearing application cache');
-                alert('Application cache cleared successfully.');
-              }}
-            >
-              Clear Application Cache
-            </Button>
-            <div>
-              <p className="text-sm text-gray-500 mt-2">
-                Last cache cleared: Never
-              </p>
-            </div>
-          </div>
-        </div>
-      </Card>
     </div>
   );
 };
