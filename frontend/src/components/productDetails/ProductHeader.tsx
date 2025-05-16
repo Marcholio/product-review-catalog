@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiArrowLeft, FiHeart, FiUser, FiStar } from 'react-icons/fi';
+import { FiArrowLeft, FiHeart, FiUser, FiStar, FiShoppingCart, FiPlus, FiMinus } from 'react-icons/fi';
 import { Card, Button } from '../ui';
 import type { Product } from '../../types/ProductType';
 import ImageWithFallback from '../ImageWithFallback';
+import { useCart } from '../../contexts/CartContext';
 
 interface ProductHeaderProps {
   product: Product;
@@ -23,6 +24,8 @@ const ProductHeader: React.FC<ProductHeaderProps> = ({
   onWishlistToggle,
 }) => {
   const navigate = useNavigate();
+  const { addItem } = useCart();
+  const [quantity, setQuantity] = useState(1);
 
   const formatPrice = (price: number | string) => {
     const numPrice = typeof price === 'number' ? price : Number(price);
@@ -88,26 +91,82 @@ const ProductHeader: React.FC<ProductHeaderProps> = ({
               </div>
             </div>
             
-            {isLoggedIn ? (
+            {/* Quantity selector */}
+            <div className="mb-6">
+              <label htmlFor="quantity" className="block text-sm font-medium text-gray-700 mb-2">
+                Quantity
+              </label>
+              <div className="flex items-center">
+                <div className="flex items-center h-10 w-32 rounded-md border border-gray-300 bg-white shadow-sm overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() => setQuantity(q => Math.max(1, q - 1))}
+                    className="w-10 h-full flex items-center justify-center text-black hover:bg-gray-100 transition-colors border-r border-gray-300 bg-white"
+                    aria-label="Decrease quantity"
+                  >
+                    <div className="flex items-center justify-center">
+                      <span className="font-bold text-lg">-</span>
+                    </div>
+                  </button>
+                  <input
+                    type="number"
+                    id="quantity"
+                    name="quantity"
+                    min="1"
+                    value={quantity}
+                    onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
+                    className="w-full bg-white text-center font-medium text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    style={{ WebkitAppearance: "none", MozAppearance: "textfield" }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setQuantity(q => q + 1)}
+                    className="w-10 h-full flex items-center justify-center text-black hover:bg-gray-100 transition-colors border-l border-gray-300 bg-white"
+                    aria-label="Increase quantity"
+                  >
+                    <div className="flex items-center justify-center">
+                      <span className="font-bold text-lg">+</span>
+                    </div>
+                  </button>
+                </div>
+              </div>
+            </div>
+            
+            {/* Action buttons */}
+            <div className="flex flex-wrap gap-3">
+              {/* Add to Cart button */}
               <Button
-                onClick={onWishlistToggle}
-                variant={isInWishlist ? 'danger' : 'primary'}
-                leftIcon={<FiHeart className={isInWishlist ? 'fill-white' : ''} />}
-                aria-label="Add to wishlist"
-                id="onboarding-wishlist-button"
-              >
-                {isInWishlist ? 'Remove from Wishlist' : 'Add to Wishlist'}
-              </Button>
-            ) : (
-              <Button
-                onClick={() => navigate('/auth')}
+                onClick={() => addItem(product, quantity)}
                 variant="primary"
-                leftIcon={<FiUser />}
-                id="onboarding-login-button"
+                leftIcon={<FiShoppingCart />}
+                className="mr-2"
+                id="add-to-cart-button"
               >
-                Login to Add to Wishlist
+                Add to Cart
               </Button>
-            )}
+              
+              {/* Wishlist button */}
+              {isLoggedIn ? (
+                <Button
+                  onClick={onWishlistToggle}
+                  variant={isInWishlist ? 'danger' : 'secondary'}
+                  leftIcon={<FiHeart className={isInWishlist ? 'fill-current' : ''} />}
+                  aria-label="Add to wishlist"
+                  id="onboarding-wishlist-button"
+                >
+                  {isInWishlist ? 'Remove from Wishlist' : 'Add to Wishlist'}
+                </Button>
+              ) : (
+                <Button
+                  onClick={() => navigate('/auth')}
+                  variant="secondary"
+                  leftIcon={<FiUser />}
+                  id="onboarding-login-button"
+                >
+                  Login to Add to Wishlist
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </Card>

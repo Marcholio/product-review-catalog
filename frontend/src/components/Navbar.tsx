@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { FiShoppingBag, FiHeart, FiUser, FiLogOut, FiMenu, FiX } from 'react-icons/fi';
+import { useCart } from '../contexts/CartContext';
+import { FiShoppingBag, FiHeart, FiUser, FiLogOut, FiMenu, FiX, FiShoppingCart } from 'react-icons/fi';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
+  const { itemCount, toggleCart } = useCart();
   const navigate = useNavigate();
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -35,17 +37,34 @@ const Navbar = () => {
 
           {/* Desktop navigation */}
           <div className="hidden md:flex items-center space-x-6">
+            <Link
+              to="/"
+              className={`transition-colors duration-200 px-3 py-2 rounded-md text-sm font-medium
+                ${isActivePath('/') 
+                  ? 'text-blue-600 bg-blue-50' 
+                  : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50'}`}
+            >
+              Products
+            </Link>
+            
+            {/* Shopping Cart Button */}
+            <button
+              onClick={toggleCart}
+              className="relative flex items-center space-x-1 text-gray-600 hover:text-blue-600 transition-colors duration-200 px-3 py-2 rounded-md text-sm font-medium bg-white"
+              aria-label="Shopping Cart"
+              id="shopping-cart-button"
+            >
+              <FiShoppingCart className="h-5 w-5" />
+              <span>Cart</span>
+              {itemCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                  {itemCount > 99 ? '99+' : itemCount}
+                </span>
+              )}
+            </button>
+            
             {user ? (
               <>
-                <Link
-                  to="/"
-                  className={`transition-colors duration-200 px-3 py-2 rounded-md text-sm font-medium
-                    ${isActivePath('/') 
-                      ? 'text-blue-600 bg-blue-50' 
-                      : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50'}`}
-                >
-                  Products
-                </Link>
                 <Link
                   to="/wishlist"
                   className={`flex items-center space-x-1 transition-colors duration-200 px-3 py-2 rounded-md text-sm font-medium
@@ -111,6 +130,26 @@ const Navbar = () => {
             >
               Products
             </Link>
+            
+            {/* Mobile cart button */}
+            <button
+              onClick={() => {
+                toggleCart();
+                setIsMenuOpen(false);
+              }}
+              className="flex w-full items-center space-x-2 px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:bg-blue-50 hover:text-blue-600 bg-white"
+            >
+              <div className="relative">
+                <FiShoppingCart className="h-5 w-5" />
+                {itemCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs font-bold rounded-full h-4 w-4 flex items-center justify-center">
+                    {itemCount > 9 ? '9+' : itemCount}
+                  </span>
+                )}
+              </div>
+              <span>Cart</span>
+            </button>
+            
             {user && (
               <Link
                 to="/wishlist"
