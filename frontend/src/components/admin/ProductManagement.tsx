@@ -3,6 +3,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { API_URL } from '../../config';
 import { Button, Card } from '../ui';
 import { FiPlus, FiEdit2, FiTrash2, FiSearch } from 'react-icons/fi';
+import ImageWithFallback from '../ImageWithFallback';
 
 interface Product {
   id: number;
@@ -130,13 +131,12 @@ const ProductManagement: React.FC = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="h-10 w-10 flex-shrink-0">
-                          <img 
-                            className="h-10 w-10 rounded-md object-cover" 
-                            src={product.imageUrl} 
-                            alt={product.name} 
-                            onError={(e) => { 
-                              (e.target as HTMLImageElement).src = 'https://via.placeholder.com/150'; 
-                            }}
+                          <ImageWithFallback
+                            className="h-10 w-10 rounded-md object-cover"
+                            fallbackClassName="h-10 w-10 rounded-md" 
+                            src={product.imageUrl}
+                            alt={product.name}
+                            loading="eager"
                           />
                         </div>
                         <div className="ml-4">
