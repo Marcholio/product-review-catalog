@@ -33,7 +33,7 @@ const AdminDashboard: React.FC = () => {
       default:
         return (
           <div className="p-6">
-            <h2 className="text-2xl font-bold mb-6">Admin Dashboard</h2>
+            <h2 className="text-2xl font-bold mb-6 text-gray-900">Admin Dashboard</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {/* Dashboard cards */}
               <Card variant="default" className="p-6">
