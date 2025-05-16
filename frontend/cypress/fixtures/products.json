@@ -1,0 +1,38 @@
+[
+  {
+    "id": 1,
+    "name": "Premium Headphones",
+    "description": "High-quality over-ear headphones with noise cancellation",
+    "price": 249.99,
+    "image": "https://example.com/headphones.jpg",
+    "category": "Electronics",
+    "stock": 42,
+    "rating": 4.7,
+    "createdAt": "2023-05-15T08:30:00.000Z",
+    "updatedAt": "2023-07-02T14:45:00.000Z"
+  },
+  {
+    "id": 2,
+    "name": "Ergonomic Office Chair",
+    "description": "Adjustable office chair with lumbar support and breathable mesh",
+    "price": 189.99,
+    "image": "https://example.com/chair.jpg",
+    "category": "Furniture",
+    "stock": 15,
+    "rating": 4.5,
+    "createdAt": "2023-04-22T10:15:00.000Z",
+    "updatedAt": "2023-06-18T09:30:00.000Z"
+  },
+  {
+    "id": 3,
+    "name": "Smart Watch Pro",
+    "description": "Waterproof smartwatch with heart rate monitoring and GPS",
+    "price": 299.99,
+    "image": "https://example.com/smartwatch.jpg",
+    "category": "Electronics",
+    "stock": 28,
+    "rating": 4.8,
+    "createdAt": "2023-05-30T15:45:00.000Z",
+    "updatedAt": "2023-07-05T11:20:00.000Z"
+  }
+]

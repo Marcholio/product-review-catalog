@@ -53,6 +53,15 @@ A full-stack application for managing product catalogs with user reviews.
 - Backend API runs on http://localhost:3000
 - PostgreSQL runs on localhost:5432
 
+## Testing
+
+The application includes comprehensive test coverage:
+
+- **Unit tests**: `npm test` in the frontend directory
+- **End-to-End tests**: `npm run test:e2e` in the frontend directory
+
+See [frontend/TESTING.md](frontend/TESTING.md) for detailed testing documentation.
+
 ## Environment Variables
 
 Create `.env` files in both frontend and backend directories. Example configurations are provided in `.env.example` files.
