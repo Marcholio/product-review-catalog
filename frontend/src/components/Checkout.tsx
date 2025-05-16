@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { FiShoppingCart, FiCheck, FiArrowLeft } from 'react-icons/fi';
 import { useCart } from '../contexts/CartContext';
 import { Button, Card } from './ui';
+import ImageWithFallback from './ImageWithFallback';
 
 const Checkout: React.FC = () => {
   const { items, totalPrice, clearCart } = useCart();
@@ -305,18 +306,19 @@ const Checkout: React.FC = () => {
                 {items.map((item) => (
                   <div key={item.product.id} className="py-3">
                     <div className="flex items-center">
-                      <img 
+                      <ImageWithFallback 
                         src={item.product.imageUrl} 
                         alt={item.product.name} 
                         className="h-16 w-16 object-cover rounded-md mr-4"
+                        fallbackClassName="h-16 w-16 rounded-md mr-4"
                       />
                       <div className="flex-1">
                         <h3 className="text-sm font-medium text-gray-900">{item.product.name}</h3>
                         <p className="text-sm text-gray-500">Qty: {item.quantity}</p>
                         <p className="text-sm font-medium text-gray-900">
-                          €{(typeof item.product.price === 'string' 
+                          €{((typeof item.product.price === 'string' 
                             ? parseFloat(item.product.price) 
-                            : item.product.price) * item.quantity}
+                            : item.product.price) * item.quantity).toFixed(2)}
                         </p>
                       </div>
                     </div>
