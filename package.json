@@ -4,8 +4,20 @@
     "react-range": "^1.10.0"
   },
   "scripts": {
-    "e2e": "cypress open",
-    "e2e:headless": "cypress run",
-    "e2e:ci": "cypress run --browser chrome --headless"
+    "e2e": "cypress open --config-file cypress.config.js",
+    "test:e2e": "start-server-and-test start:fe http://localhost:5173 e2e",
+    "e2e:headless": "cypress run --config-file cypress.config.js",
+    "test:e2e:all": "start-server-and-test start:fe http://localhost:5173 e2e:headless",
+    "e2e:minimal": "cypress run --config-file cypress.config.js --spec \"./frontend/cypress/e2e/minimal.cy.js\"",
+    "e2e:basic": "cypress run --config-file cypress.config.js --spec \"./frontend/cypress/e2e/basic.cy.js\"",
+    "e2e:navbar": "cypress run --config-file cypress.config.js --spec \"./frontend/cypress/e2e/navbar.cy.js\"",
+    "start:fe": "cd frontend && npm run dev",
+    "test:e2e:basic": "start-server-and-test start:fe http://localhost:5173 e2e:basic",
+    "test:e2e:navbar": "start-server-and-test start:fe http://localhost:5173 e2e:navbar"
+  },
+  "devDependencies": {
+    "cypress": "^14.3.3",
+    "start-server-and-test": "^2.0.12",
+    "typescript": "^5.8.3"
   }
 }

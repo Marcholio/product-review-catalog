@@ -12,9 +12,8 @@
     "test:watch": "vitest",
     "cy:open": "cypress open",
     "cy:run": "cypress run",
-    "cy:ci": "cypress run --browser chrome --headless",
-    "test:e2e": "start-server-and-test dev http://localhost:5173 cy:open",
-    "test:e2e:ci": "start-server-and-test dev http://localhost:5173 cy:ci"
+    "cy:smoke": "cypress run --spec \"cypress/e2e/basic.cy.js\"",
+    "test:e2e": "cypress open"
   },
   "dependencies": {
     "@types/react-router-dom": "^5.3.3",

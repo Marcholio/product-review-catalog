@@ -1,5 +1,17 @@
 {
-  "name": "Using fixtures to represent data",
-  "email": "hello@cypress.io",
-  "body": "Fixtures are a great way to mock data for responses to routes"
+  "user": {
+    "id": 1,
+    "name": "Test User",
+    "email": "test@example.com"
+  },
+  "token": "example-jwt-token",
+  "products": [
+    {
+      "id": 1,
+      "name": "Premium Headphones",
+      "price": 249.99,
+      "rating": 4.7,
+      "image": "headphones.jpg"
+    }
+  ]
 }
