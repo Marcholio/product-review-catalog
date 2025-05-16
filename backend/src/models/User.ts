@@ -7,6 +7,7 @@ interface UserAttributes {
   email: string;
   password: string;
   name: string;
+  isAdmin?: boolean;
   preferences?: {
     defaultSort?: string;
     defaultCategory?: string;
@@ -23,6 +24,7 @@ class User extends Model<UserAttributes> implements UserAttributes {
   public email!: string;
   public password!: string;
   public name!: string;
+  public isAdmin!: boolean;
   public preferences!: {
     defaultSort?: string;
     defaultCategory?: string;
@@ -48,6 +50,10 @@ class User extends Model<UserAttributes> implements UserAttributes {
   
   get safePassword(): string {
     return this.password || this.getDataValue('password');
+  }
+  
+  get safeIsAdmin(): boolean {
+    return this.isAdmin || this.getDataValue('isAdmin') || false;
   }
   
   get safePreferences(): any {
@@ -101,6 +107,11 @@ User.init(
     name: {
       type: DataTypes.STRING,
       allowNull: false,
+    },
+    isAdmin: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
     },
     preferences: {
       type: DataTypes.JSONB,

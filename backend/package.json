@@ -13,7 +13,9 @@
     "test": "jest",
     "lint": "eslint src --ext .ts",
     "seed": "NODE_ENV=development SEED_DATABASE=true tsx src/db/seed.ts",
-    "migrate": "NODE_ENV=development tsx src/db/runMigration.js"
+    "migrate": "NODE_ENV=development tsx src/db/runMigration.js",
+    "make-admin": "tsx src/scripts/makeUserAdmin.ts",
+    "add-admin-column": "tsx src/scripts/addIsAdminColumn.ts"
   },
   "dependencies": {
     "@types/compression": "^1.7.5",

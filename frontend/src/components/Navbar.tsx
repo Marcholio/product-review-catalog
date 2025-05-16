@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useCart } from '../contexts/CartContext';
-import { FiShoppingBag, FiHeart, FiUser, FiLogOut, FiMenu, FiX, FiShoppingCart } from 'react-icons/fi';
+import { FiShoppingBag, FiHeart, FiUser, FiLogOut, FiMenu, FiX, FiShoppingCart, FiSettings } from 'react-icons/fi';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
@@ -76,6 +76,18 @@ const Navbar = () => {
                   <FiHeart className="h-4 w-4" />
                   <span>Wishlist</span>
                 </Link>
+                {user.isAdmin && (
+                  <Link
+                    to="/admin"
+                    className={`flex items-center space-x-1 transition-colors duration-200 px-3 py-2 rounded-md text-sm font-medium
+                      ${isActivePath('/admin') 
+                        ? 'text-blue-600 bg-blue-50' 
+                        : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50'}`}
+                  >
+                    <FiSettings className="h-4 w-4" />
+                    <span>Admin</span>
+                  </Link>
+                )}
                 <div className="relative ml-3">
                   <div className="flex items-center space-x-1 text-gray-700 border border-gray-200 rounded-full px-3 py-1.5">
                     <FiUser className="h-4 w-4 text-blue-600" />
@@ -151,16 +163,31 @@ const Navbar = () => {
             </button>
             
             {user && (
-              <Link
-                to="/wishlist"
-                className={`flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium ${
-                  isActivePath('/wishlist') ? 'text-blue-600 bg-blue-50' : 'text-gray-600 hover:bg-blue-50 hover:text-blue-600'
-                }`}
-                onClick={() => setIsMenuOpen(false)}
-              >
-                <FiHeart className="h-4 w-4" />
-                <span>Wishlist</span>
-              </Link>
+              <>
+                <Link
+                  to="/wishlist"
+                  className={`flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium ${
+                    isActivePath('/wishlist') ? 'text-blue-600 bg-blue-50' : 'text-gray-600 hover:bg-blue-50 hover:text-blue-600'
+                  }`}
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <FiHeart className="h-4 w-4" />
+                  <span>Wishlist</span>
+                </Link>
+                
+                {user.isAdmin && (
+                  <Link
+                    to="/admin"
+                    className={`flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium ${
+                      isActivePath('/admin') ? 'text-blue-600 bg-blue-50' : 'text-gray-600 hover:bg-blue-50 hover:text-blue-600'
+                    }`}
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <FiSettings className="h-4 w-4" />
+                    <span>Admin Dashboard</span>
+                  </Link>
+                )}
+              </>
             )}
             {user ? (
               <>

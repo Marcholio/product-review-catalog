@@ -76,6 +76,7 @@ export const register = async (req: Request, res: Response) => {
         id: (user as any).safeId || user.dataValues.id,
         email: (user as any).safeEmail || user.dataValues.email,
         name: (user as any).safeName || user.dataValues.name,
+        isAdmin: (user as any).safeIsAdmin || user.dataValues.isAdmin || false,
         preferences: (user as any).safePreferences || user.dataValues.preferences
       };
       
@@ -212,6 +213,7 @@ export const login = async (req: Request, res: Response) => {
       id: rawUser.id,
       email: rawUser.email,
       name: rawUser.name,
+      isAdmin: rawUser.isAdmin || false,
       preferences: rawUser.preferences || {
         theme: 'light',
         defaultSort: 'createdAt',
@@ -329,6 +331,7 @@ export const updatePreferences = async (req: Request, res: Response) => {
         id: updatedUser.id,
         email: updatedUser.email,
         name: updatedUser.name,
+        isAdmin: updatedUser.isAdmin || false,
         preferences: updatedUser.preferences,
       },
     });
@@ -350,6 +353,7 @@ export const getProfile = async (req: Request, res: Response) => {
         id: user.id,
         email: user.email,
         name: user.name,
+        isAdmin: user.isAdmin || false,
         preferences: user.preferences,
       },
     });

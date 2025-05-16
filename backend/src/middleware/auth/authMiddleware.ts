@@ -22,6 +22,7 @@ interface RawUser {
   email: string;
   password: string;
   name: string;
+  isAdmin: boolean;
   preferences: any;
   createdAt: Date;
   updatedAt: Date;
@@ -77,6 +78,28 @@ export const authenticate = asyncHandler(async (
 
   // Attach user to request
   req.user = userInstance;
+  next();
+});
+
+/**
+ * Admin authorization middleware that checks if the user is an admin
+ */
+export const adminAuth = asyncHandler(async (
+  req: AuthRequest, 
+  res: Response, 
+  next: NextFunction
+) => {
+  // Check if user exists and is authenticated
+  if (!req.user) {
+    throw new UnauthorizedError('Authentication required');
+  }
+
+  // Check if user is an admin
+  if (!req.user.isAdmin) {
+    throw new UnauthorizedError('Admin access required');
+  }
+
+  // If user is an admin, continue
   next();
 });
 

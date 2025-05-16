@@ -6,6 +6,7 @@ import Checkout from './components/Checkout';
 import AuthForm from './components/AuthForm';
 import Navbar from './components/Navbar';
 import { Cart } from './components/cart';
+import { AdminDashboard } from './components/admin';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { CartProvider } from './contexts/CartContext';
 import { OnboardingProvider } from './contexts/OnboardingContext';
@@ -21,6 +22,18 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   
   // Only redirect to auth if we're sure the user is not authenticated
   return user ? <>{children}</> : <Navigate to="/auth" />;
+};
+
+const AdminRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user, initializing } = useAuth();
+  
+  // If auth state is still initializing, show a loading indicator
+  if (initializing) {
+    return <div className="flex justify-center items-center min-h-screen">Loading...</div>;
+  }
+  
+  // Verify the user exists, is authenticated, and is an admin
+  return (user && user.isAdmin) ? <>{children}</> : <Navigate to="/" />;
 };
 
 function App() {
@@ -45,6 +58,14 @@ function App() {
                   />
                   <Route path="/checkout" element={<Checkout />} />
                   <Route path="/auth" element={<AuthForm />} />
+                  <Route 
+                    path="/admin/*" 
+                    element={
+                      <AdminRoute>
+                        <AdminDashboard />
+                      </AdminRoute>
+                    } 
+                  />
                 </Routes>
               </main>
               <footer className="bg-white mt-12 border-t border-gray-200">

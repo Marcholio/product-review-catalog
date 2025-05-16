@@ -9,6 +9,7 @@ import { InternalServerError } from '../../utils/errors/AppError.js';
 interface TokenPayload {
   id: number;
   email: string;
+  isAdmin?: boolean;
 }
 
 /**
@@ -29,7 +30,8 @@ export const generateToken = (user: User | any): string => {
   // Create token payload
   const payload: TokenPayload = {
     id: userId,
-    email: userEmail
+    email: userEmail,
+    isAdmin: user?.isAdmin || false
   };
 
   // Set JWT options
