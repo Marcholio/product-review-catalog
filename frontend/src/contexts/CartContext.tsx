@@ -1,11 +1,36 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import type { Product } from '../types/Product';
+import type { Product } from '../types/ProductType';
 
 // Cart item type with quantity
 export interface CartItem {
   product: Product;
   quantity: number;
 }
+
+// Helper functions for localStorage
+const CART_STORAGE_KEY = 'product-catalog-cart';
+
+// Get cart from localStorage
+const getStoredCart = (): CartItem[] => {
+  try {
+    const storedCart = localStorage.getItem(CART_STORAGE_KEY);
+    if (storedCart) {
+      return JSON.parse(storedCart);
+    }
+  } catch (err) {
+    console.error('Failed to parse cart from localStorage:', err);
+  }
+  return [];
+};
+
+// Save cart to localStorage
+const storeCart = (cart: CartItem[]): void => {
+  try {
+    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+  } catch (err) {
+    console.error('Failed to save cart to localStorage:', err);
+  }
+};
 
 // Cart context type
 export interface CartContextType {
@@ -27,32 +52,13 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 
 // Provider component
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [items, setItems] = useState<CartItem[]>([]);
+  // Initialize with stored cart
+  const [items, setItems] = useState<CartItem[]>(getStoredCart());
   const [isCartOpen, setIsCartOpen] = useState(false);
   
-  // Initialize cart from localStorage on mount
-  useEffect(() => {
-    try {
-      const storedCart = localStorage.getItem('cart');
-      if (storedCart) {
-        const parsedCart = JSON.parse(storedCart);
-        if (Array.isArray(parsedCart)) {
-          setItems(parsedCart);
-        }
-      }
-    } catch (err) {
-      console.error('Error loading cart from localStorage:', err);
-      // If there's an error, just start with an empty cart
-    }
-  }, []);
-
   // Save cart to localStorage whenever it changes
   useEffect(() => {
-    try {
-      localStorage.setItem('cart', JSON.stringify(items));
-    } catch (err) {
-      console.error('Error saving cart to localStorage:', err);
-    }
+    storeCart(items);
   }, [items]);
 
   // Calculate derived values
