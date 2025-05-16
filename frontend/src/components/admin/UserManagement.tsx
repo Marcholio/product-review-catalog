@@ -21,70 +21,40 @@ const UserManagement: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
-    // This is a placeholder. In a real app, we would fetch real users
-    // from the backend using an admin API endpoint
     const fetchUsers = async () => {
       try {
         setLoading(true);
         
-        // Normally we would do something like:
-        // const response = await fetch(`${API_URL}/admin/users`, {
-        //   headers: {
-        //     'Authorization': `Bearer ${token}`
-        //   }
-        // });
-        
-        // For now, using dummy data
-        const dummyUsers: User[] = [
-          {
-            id: 1,
-            name: 'Admin User',
-            email: 'admin@example.com',
-            isAdmin: true,
-            createdAt: '2023-01-01T00:00:00Z'
-          },
-          {
-            id: 2,
-            name: 'John Doe',
-            email: 'john@example.com',
-            isAdmin: false,
-            createdAt: '2023-01-15T00:00:00Z'
-          },
-          {
-            id: 3,
-            name: 'Jane Smith',
-            email: 'jane@example.com',
-            isAdmin: false,
-            createdAt: '2023-02-01T00:00:00Z'
-          },
-          {
-            id: 4,
-            name: 'Bob Johnson',
-            email: 'bob@example.com',
-            isAdmin: false,
-            createdAt: '2023-03-10T00:00:00Z'
-          },
-          {
-            id: 5,
-            name: 'Manager User',
-            email: 'manager@example.com',
-            isAdmin: true,
-            createdAt: '2023-01-05T00:00:00Z'
+        const response = await fetch(`${API_URL}/admin/users`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
           }
-        ];
+        });
         
-        // Simulate API delay
-        setTimeout(() => {
-          setUsers(dummyUsers);
-          setLoading(false);
-        }, 500);
+        if (!response.ok) {
+          throw new Error('Failed to fetch users');
+        }
+        
+        const data = await response.json();
+        
+        // Handle response format with data field
+        if (data.success && Array.isArray(data.data)) {
+          setUsers(data.data);
+        } else {
+          console.error('Unexpected response format:', data);
+          setUsers([]);
+        }
+        
+        setLoading(false);
       } catch (error) {
         console.error('Error fetching users:', error);
         setLoading(false);
       }
     };
     
-    fetchUsers();
+    if (token) {
+      fetchUsers();
+    }
   }, [token]);
 
   // Filter users based on search query
@@ -96,6 +66,69 @@ const UserManagement: React.FC = () => {
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString();
+  };
+
+  const toggleAdminStatus = async (userId: number) => {
+    try {
+      setLoading(true);
+      
+      const response = await fetch(`${API_URL}/admin/users/${userId}/toggle-admin`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to update user admin status');
+      }
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        // Update users list with the new admin status
+        setUsers(users.map(user => 
+          user.id === userId 
+            ? { ...user, isAdmin: data.data.isAdmin } 
+            : user
+        ));
+      }
+    } catch (error) {
+      console.error('Error toggling admin status:', error);
+      alert('Failed to update user admin status. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteUser = async (userId: number) => {
+    try {
+      setLoading(true);
+      
+      const response = await fetch(`${API_URL}/admin/users/${userId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to delete user');
+      }
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        // Remove the deleted user from the list
+        setUsers(users.filter(user => user.id !== userId));
+      }
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      alert('Failed to delete user. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -206,8 +239,7 @@ const UserManagement: React.FC = () => {
                           onClick={() => {
                             // Handle removing admin rights
                             if (window.confirm(`Are you sure you want to remove admin rights from ${user.name}?`)) {
-                              // TODO: Implement admin rights removal
-                              console.log(`Remove admin rights from user ${user.id}`);
+                              toggleAdminStatus(user.id);
                             }
                           }}
                           className="text-amber-600 hover:text-amber-900 mr-3 bg-white"
@@ -220,8 +252,7 @@ const UserManagement: React.FC = () => {
                           onClick={() => {
                             // Handle granting admin rights
                             if (window.confirm(`Are you sure you want to grant admin rights to ${user.name}?`)) {
-                              // TODO: Implement admin rights granting
-                              console.log(`Grant admin rights to user ${user.id}`);
+                              toggleAdminStatus(user.id);
                             }
                           }}
                           className="text-green-600 hover:text-green-900 mr-3 bg-white"
@@ -234,8 +265,7 @@ const UserManagement: React.FC = () => {
                         onClick={() => {
                           // Handle delete confirmation
                           if (window.confirm(`Are you sure you want to delete user ${user.name}?`)) {
-                            // TODO: Implement delete functionality
-                            console.log(`Delete user ${user.id}`);
+                            deleteUser(user.id);
                           }
                         }}
                         className="text-red-600 hover:text-red-900 bg-white"

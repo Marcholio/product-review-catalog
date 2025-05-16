@@ -14,6 +14,7 @@ import productRoutes from './routes/productRoutes.js';
 import reviewRoutes from './routes/reviewRoutes.js';
 import wishlistRoutes from './routes/wishlistRoutes.js';
 import userRoutes from './routes/userRoutes.js';
+import adminRoutes from './routes/adminRoutes.js';
 
 /**
  * Create and configure Express application
@@ -69,6 +70,7 @@ const createApp = (): Express => {
   app.use('/api/reviews', reviewRoutes);
   app.use('/api/wishlist', wishlistRoutes);
   app.use('/api/users', userRoutes);
+  app.use('/api/admin', adminRoutes);
   
   // Basic route for testing
   app.get('/api/health', (_req, res) => {
