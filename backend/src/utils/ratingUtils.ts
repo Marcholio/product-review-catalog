@@ -1,13 +1,20 @@
-import { literal } from 'sequelize';
+import { literal, Op } from 'sequelize';
 import Product from '../models/Product.js';
 import Review from '../models/Review.js';
 
 // Helper function to update a single product's rating based on its reviews
 export const updateProductRating = async (productId: number): Promise<number> => {
   try {
-    // Get all reviews for the product
+    // Get all approved reviews for the product
+    // Use a more flexible query to handle both new reviews with status and legacy reviews
     const reviews = await Review.findAll({
-      where: { productId }
+      where: { 
+        productId,
+        [Op.or]: [
+          { status: 'approved' },
+          { status: null } // Include legacy reviews that might not have a status
+        ]
+      }
     });
     
     // Calculate average rating
@@ -64,6 +71,7 @@ export const getProductAttributesWithReviewStats = () => {
         SELECT COUNT(*)
         FROM "Reviews"
         WHERE "Reviews"."productId" = "Product"."id"
+        AND ("Reviews"."status" = 'approved' OR "Reviews"."status" IS NULL)
       )`),
       'reviewCount'
     ],
@@ -72,6 +80,7 @@ export const getProductAttributesWithReviewStats = () => {
         SELECT COALESCE(AVG("Reviews"."rating"), 0)
         FROM "Reviews"
         WHERE "Reviews"."productId" = "Product"."id"
+        AND ("Reviews"."status" = 'approved' OR "Reviews"."status" IS NULL)
       )`),
       'rating'
     ]

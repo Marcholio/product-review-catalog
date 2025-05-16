@@ -8,6 +8,7 @@ interface ReviewAttributes {
   rating: number;
   comment: string;
   userName: string;
+  status?: 'pending' | 'approved' | 'rejected';
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -18,6 +19,7 @@ class Review extends Model<ReviewAttributes> implements ReviewAttributes {
   public rating!: number;
   public comment!: string;
   public userName!: string;
+  public status!: 'pending' | 'approved' | 'rejected';
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 }
@@ -52,6 +54,14 @@ Review.init(
     userName: {
       type: DataTypes.STRING,
       allowNull: false,
+    },
+    status: {
+      type: DataTypes.STRING,
+      defaultValue: 'pending',
+      allowNull: false,
+      validate: {
+        isIn: [['pending', 'approved', 'rejected']]
+      }
     },
   },
   {

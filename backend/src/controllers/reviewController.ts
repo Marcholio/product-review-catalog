@@ -26,12 +26,13 @@ export const createReview = async (req: Request, res: Response) => {
       return res.status(404).json({ message: 'Product not found' });
     }
 
-    // Create review
+    // Create review with 'pending' status
     const review = await Review.create({
       productId,
       rating,
       comment,
       userName,
+      status: 'pending', // All reviews start as pending by default
     });
 
     // Update product rating using the utility function

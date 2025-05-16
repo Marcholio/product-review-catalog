@@ -25,85 +25,40 @@ const ReviewManagement: React.FC = () => {
   const [isViewing, setIsViewing] = useState(false);
 
   useEffect(() => {
-    // This is a placeholder. In a real app, we would fetch real reviews
-    // from the backend using an admin API endpoint
     const fetchReviews = async () => {
       try {
         setLoading(true);
         
-        // Normally we would do something like:
-        // const response = await fetch(`${API_URL}/admin/reviews`, {
-        //   headers: {
-        //     'Authorization': `Bearer ${token}`
-        //   }
-        // });
-        
-        // For now, using dummy data
-        const dummyReviews: Review[] = [
-          {
-            id: 1,
-            productId: 101,
-            productName: 'Premium Headphones',
-            userName: 'John Doe',
-            rating: 4.5,
-            comment: 'Great sound quality and comfortable to wear for long periods. I would recommend these to anyone looking for good quality headphones.',
-            createdAt: '2023-04-15T10:30:00Z',
-            status: 'pending'
-          },
-          {
-            id: 2,
-            productId: 102,
-            productName: 'Wireless Keyboard',
-            userName: 'Jane Smith',
-            rating: 5.0,
-            comment: 'Best keyboard I have ever used. The keys have a nice feel and the battery lasts for months.',
-            createdAt: '2023-04-10T14:20:00Z',
-            status: 'approved'
-          },
-          {
-            id: 3,
-            productId: 103,
-            productName: 'Smart Watch',
-            userName: 'Bob Johnson',
-            rating: 2.0,
-            comment: 'The battery life is terrible and the app keeps crashing. Not worth the money.',
-            createdAt: '2023-04-05T09:45:00Z',
-            status: 'rejected'
-          },
-          {
-            id: 4,
-            productId: 104,
-            productName: 'Bluetooth Speaker',
-            userName: 'Alice Williams',
-            rating: 4.0,
-            comment: 'Good sound for the size, but could use a bit more bass. Battery life is excellent.',
-            createdAt: '2023-04-12T16:30:00Z',
-            status: 'pending'
-          },
-          {
-            id: 5,
-            productId: 105,
-            productName: 'Ergonomic Mouse',
-            userName: 'Charlie Brown',
-            rating: 3.5,
-            comment: 'Took some time to get used to, but now my wrist pain is gone. A bit expensive though.',
-            createdAt: '2023-04-08T11:20:00Z',
-            status: 'pending'
+        const response = await fetch(`${API_URL}/admin/reviews`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
           }
-        ];
+        });
         
-        // Simulate API delay
-        setTimeout(() => {
-          setReviews(dummyReviews);
-          setLoading(false);
-        }, 500);
+        if (!response.ok) {
+          throw new Error('Failed to fetch reviews');
+        }
+        
+        const data = await response.json();
+        
+        // Handle response format with data field
+        if (data.success && Array.isArray(data.data)) {
+          setReviews(data.data);
+        } else {
+          console.error('Unexpected response format:', data);
+          setReviews([]);
+        }
+        
+        setLoading(false);
       } catch (error) {
         console.error('Error fetching reviews:', error);
         setLoading(false);
       }
     };
     
-    fetchReviews();
+    if (token) {
+      fetchReviews();
+    }
   }, [token]);
 
   // Filter reviews based on search query and status filter
@@ -123,6 +78,94 @@ const ReviewManagement: React.FC = () => {
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString();
+  };
+
+  const handleUpdateStatus = async (reviewId: number, status: 'pending' | 'approved' | 'rejected') => {
+    try {
+      console.log(`Changing review ${reviewId} status to ${status}`);
+      setLoading(true);
+      
+      const requestBody = JSON.stringify({ status });
+      console.log('Request body:', requestBody);
+      console.log('Request URL:', `${API_URL}/admin/reviews/${reviewId}/status`);
+      
+      const response = await fetch(`${API_URL}/admin/reviews/${reviewId}/status`, {
+        method: 'POST', // Changed from PATCH to POST for better compatibility
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: requestBody
+      });
+      
+      console.log('Response status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Error response:', errorText);
+        throw new Error(`Failed to update review status to ${status}. Server responded with: ${response.status} ${errorText}`);
+      }
+      
+      const data = await response.json();
+      console.log('Response data:', data);
+      
+      if (data.success) {
+        // Update reviews list with the new status
+        setReviews(reviews.map(review => 
+          review.id === reviewId 
+            ? { ...review, status: data.data.status } 
+            : review
+        ));
+        
+        // Close the detail view if it's open
+        if (isViewing && selectedReview && selectedReview.id === reviewId) {
+          setSelectedReview({...selectedReview, status: data.data.status });
+        }
+      }
+    } catch (error) {
+      console.error('Error updating review status:', error);
+      alert(`Failed to ${status} review. Please try again.`);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const handleDeleteReview = async (reviewId: number) => {
+    try {
+      if (!window.confirm('Are you sure you want to delete this review?')) {
+        return;
+      }
+      
+      setLoading(true);
+      
+      const response = await fetch(`${API_URL}/admin/reviews/${reviewId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to delete review');
+      }
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        // Remove the deleted review from the list
+        setReviews(reviews.filter(review => review.id !== reviewId));
+        
+        // Close the detail view if the deleted review was being viewed
+        if (isViewing && selectedReview && selectedReview.id === reviewId) {
+          setIsViewing(false);
+        }
+      }
+    } catch (error) {
+      console.error('Error deleting review:', error);
+      alert('Failed to delete review. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const renderStars = (rating: number) => {
@@ -274,20 +317,28 @@ const ReviewManagement: React.FC = () => {
                       {review.status === 'pending' && (
                         <>
                           <button 
-                            onClick={() => {
-                              // TODO: Implement approve functionality
-                              console.log(`Approve review ${review.id}`);
+                            onClick={async () => {
+                              await handleUpdateStatus(review.id, 'approved');
+                              // Force reload of review list after status change
+                              setTimeout(() => {
+                                window.location.reload();
+                              }, 1000);
                             }}
                             className="ml-3 text-green-600 hover:text-green-900 bg-white"
+                            title="Approve review"
                           >
                             <FiCheck size={18} />
                           </button>
                           <button 
-                            onClick={() => {
-                              // TODO: Implement reject functionality
-                              console.log(`Reject review ${review.id}`);
+                            onClick={async () => {
+                              await handleUpdateStatus(review.id, 'rejected');
+                              // Force reload of review list after status change
+                              setTimeout(() => {
+                                window.location.reload();
+                              }, 1000);
                             }}
-                            className="ml-3 text-red-600 hover:text-red-900"
+                            className="ml-3 text-red-600 hover:text-red-900 bg-white"
+                            title="Reject review"
                           >
                             <FiX size={18} />
                           </button>
@@ -331,10 +382,13 @@ const ReviewManagement: React.FC = () => {
                   <Button 
                     variant="danger" 
                     leftIcon={<FiX />}
-                    onClick={() => {
-                      // TODO: Implement reject functionality
-                      console.log(`Reject review ${selectedReview.id}`);
+                    onClick={async () => {
+                      await handleUpdateStatus(selectedReview.id, 'rejected');
                       setIsViewing(false);
+                      // Force reload after status change
+                      setTimeout(() => {
+                        window.location.reload();
+                      }, 1000);
                     }}
                     className="mr-2"
                   >
@@ -343,10 +397,13 @@ const ReviewManagement: React.FC = () => {
                   <Button 
                     variant="primary" 
                     leftIcon={<FiCheck />}
-                    onClick={() => {
-                      // TODO: Implement approve functionality
-                      console.log(`Approve review ${selectedReview.id}`);
+                    onClick={async () => {
+                      await handleUpdateStatus(selectedReview.id, 'approved');
                       setIsViewing(false);
+                      // Force reload after status change
+                      setTimeout(() => {
+                        window.location.reload();
+                      }, 1000);
                     }}
                     className="mr-2"
                   >
@@ -357,8 +414,18 @@ const ReviewManagement: React.FC = () => {
               <Button 
                 variant="secondary" 
                 onClick={() => setIsViewing(false)}
+                className="mr-2"
               >
                 Close
+              </Button>
+              <Button 
+                variant="danger" 
+                onClick={() => {
+                  handleDeleteReview(selectedReview.id);
+                  setIsViewing(false);
+                }}
+              >
+                Delete Review
               </Button>
             </div>
           </Card>

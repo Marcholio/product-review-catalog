@@ -1,5 +1,12 @@
 import express from 'express';
-import { getAllUsers, toggleAdminStatus, deleteUser } from '../controllers/adminController.js';
+import { 
+  getAllUsers, 
+  toggleAdminStatus, 
+  deleteUser, 
+  getAllReviews, 
+  updateReviewStatus, 
+  deleteReview 
+} from '../controllers/adminController.js';
 import { authenticate, adminAuth } from '../middleware/auth/index.js';
 
 const router = express.Router();
@@ -118,5 +125,156 @@ router.patch('/users/:userId/toggle-admin', authenticate, adminAuth, toggleAdmin
  *         description: Server error
  */
 router.delete('/users/:userId', authenticate, adminAuth, deleteUser);
+
+/**
+ * @swagger
+ * /api/admin/reviews:
+ *   get:
+ *     summary: Get all reviews
+ *     description: Get a list of all reviews with product information (admin only)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of reviews
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                       productId:
+ *                         type: integer
+ *                       productName:
+ *                         type: string
+ *                       userName:
+ *                         type: string
+ *                       rating:
+ *                         type: number
+ *                       comment:
+ *                         type: string
+ *                       status:
+ *                         type: string
+ *                         enum: [pending, approved, rejected]
+ *                       createdAt:
+ *                         type: string
+ *                         format: date-time
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Admin access required
+ *       500:
+ *         description: Server error
+ */
+router.get('/reviews', authenticate, adminAuth, getAllReviews);
+
+/**
+ * @swagger
+ * /api/admin/reviews/{reviewId}/status:
+ *   patch:
+ *     summary: Update review status
+ *     description: Update a review's status (admin only)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: reviewId
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: ID of the review
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - status
+ *             properties:
+ *               status:
+ *                 type: string
+ *                 enum: [pending, approved, rejected]
+ *     responses:
+ *       200:
+ *         description: Review status updated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                     status:
+ *                       type: string
+ *                       enum: [pending, approved, rejected]
+ *       400:
+ *         description: Invalid status
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Admin access required
+ *       404:
+ *         description: Review not found
+ *       500:
+ *         description: Server error
+ */
+// Support both PATCH and POST for wider compatibility
+router.patch('/reviews/:reviewId/status', authenticate, adminAuth, updateReviewStatus);
+router.post('/reviews/:reviewId/status', authenticate, adminAuth, updateReviewStatus);
+
+/**
+ * @swagger
+ * /api/admin/reviews/{reviewId}:
+ *   delete:
+ *     summary: Delete review
+ *     description: Delete a review (admin only)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: reviewId
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: ID of the review
+ *     responses:
+ *       200:
+ *         description: Review deleted
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Admin access required
+ *       404:
+ *         description: Review not found
+ *       500:
+ *         description: Server error
+ */
+router.delete('/reviews/:reviewId', authenticate, adminAuth, deleteReview);
 
 export default router;
