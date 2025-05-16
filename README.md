@@ -1,71 +1,225 @@
 # Product Review Catalog
 
-A full-stack application for managing product catalogs with user reviews.
+A full-stack TypeScript application for browsing products, submitting reviews, and managing wishlists.
 
-## Features
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
 
-- Product catalog browsing and searching
-- User authentication and authorization
-- Product reviews and ratings
-- Admin dashboard for product management
-- RESTful API backend
-- PostgreSQL database for persistent storage
+## 🌟 Features
 
-## Project Structure
+- **Product Management**: Browse, search, filter, and sort products
+- **User Authentication**: Register, login, and profile management
+- **Reviews & Ratings**: Submit and view product reviews with ratings
+- **Wishlist**: Save favorite products for later
+- **Admin Dashboard**: Manage products, reviews, and user accounts
+- **Responsive Design**: Works on desktop and mobile devices
+- **Dark Mode Support**: Toggle between light and dark themes
+
+## 🚀 Tech Stack
+
+### Frontend
+- React with TypeScript
+- React Router for navigation
+- Context API for state management
+- Tailwind CSS for styling
+- Vite for build tooling
+
+### Backend
+- Node.js with Express
+- TypeScript with ESM modules
+- Sequelize ORM for database operations
+- JWT authentication
+- OpenAPI/Swagger documentation
+
+### Database
+- PostgreSQL
+- Sequelize ORM
+
+### DevOps
+- Docker & Docker Compose
+- Environment-based configuration
+
+## 📁 Project Structure
 
 ```
 .
 ├── frontend/           # React frontend application
-├── backend/           # Node.js Express backend
-└── docker/            # Docker configuration files
+│   ├── src/            # Frontend source code
+│   │   ├── components/ # React components
+│   │   ├── contexts/   # React context providers
+│   │   └── types/      # TypeScript type definitions
+│   └── public/         # Static assets
+├── backend/            # Node.js Express backend
+│   ├── src/            # Backend source code
+│   │   ├── config/     # Configuration files
+│   │   ├── controllers/# Request handlers
+│   │   ├── models/     # Database models
+│   │   ├── routes/     # API route definitions
+│   │   ├── middleware/ # Express middleware
+│   │   ├── services/   # Business logic
+│   │   └── utils/      # Utility functions
+│   └── tests/          # Backend tests
+└── docker-compose.yml  # Docker configuration
 ```
 
-## Prerequisites
+## 🔧 Prerequisites
 
 - Node.js (v18 or later)
 - Docker and Docker Compose
-- PostgreSQL (if running locally)
 - npm or yarn
 
-## Quick Start
+## 🏁 Quick Start
 
-1. Clone the repository
-2. Start the database:
+1. **Clone the repository**
+
+2. **Start the database:**
    ```bash
    docker-compose up -d db
    ```
-3. Install and start the backend:
+
+3. **Set up environment variables:**
+   - Create `.env` files in both the `frontend` and `backend` directories using the examples below
+
+4. **Install and start the backend:**
    ```bash
    cd backend
    npm install
-   npm run dev
+   npm run dev  # Runs on http://localhost:3000
    ```
-4. Install and start the frontend:
+
+5. **Install and start the frontend:**
    ```bash
    cd frontend
    npm install
-   npm run dev
+   npm run dev  # Runs on http://localhost:5173
    ```
 
-## Development
+## 💻 Development
 
-- Frontend runs on http://localhost:5173
-- Backend API runs on http://localhost:3000
-- PostgreSQL runs on localhost:5432
+### Backend Commands
 
-## Testing
+```bash
+# From the backend directory:
+npm run dev        # Start development server with auto-reload
+npm run build      # Build TypeScript to JavaScript
+npm run watch      # Watch mode for TypeScript compilation
+npm run test       # Run tests with Jest
+```
+
+### Frontend Commands
+
+```bash
+# From the frontend directory:
+npm run dev        # Start development server
+npm run build      # Build for production
+npm run lint       # Run ESLint
+npm run preview    # Preview production build
+```
+
+### API Documentation
+
+The API documentation is available at http://localhost:3000/api-docs when the backend is running.
+
+## 🏗️ Architecture
+
+### Backend
+
+The backend follows a typical Express MVC pattern:
+- `src/models/` - Sequelize ORM models (Product, Review, User, Wishlist)
+- `src/controllers/` - Request handlers
+- `src/routes/` - API route definitions
+- `src/middleware/` - Auth, error handling, and other middleware
+- `src/config/` - Database, security, and Swagger configuration
+
+Key features:
+- TypeScript with ESM modules
+- Sequelize ORM for database operations
+- JWT authentication
+- OpenAPI/Swagger documentation
+- Security features (rate limiting, helmet, CORS)
+
+### Frontend
+
+The frontend is a React application built with:
+- TypeScript
+- React Router for navigation
+- Context API for state management (AuthContext, CartContext)
+- Tailwind CSS for styling
+
+The component structure includes:
+- Product browsing and filtering (ProductList)
+- Product details with reviews (ProductDetails)
+- User authentication (AuthForm)
+- User wishlist management (Wishlist)
+- Shopping cart functionality (Cart)
+- Admin dashboard (AdminDashboard)
+
+### Database Schema
+
+The primary models are:
+- **Product**: Product catalog items with name, description, price, etc.
+- **User**: User accounts with authentication details
+- **Review**: Product reviews with ratings
+- **Wishlist**: User-saved product collections
+
+## 🧪 Testing
 
 The application includes comprehensive test coverage:
 
-- **Unit tests**: `npm test` in the frontend directory
-- **End-to-End tests**: `npm run test:e2e` in the frontend directory
+- **Backend Tests**: `npm test` in the backend directory
+- **Frontend Unit Tests**: `npm test` in the frontend directory
+- **Frontend E2E Tests**: `npm run test:e2e` in the frontend directory
 
-See [frontend/TESTING.md](frontend/TESTING.md) for detailed testing documentation.
+## 🔐 Environment Setup
 
-## Environment Variables
+### Backend Environment Variables (.env)
 
-Create `.env` files in both frontend and backend directories. Example configurations are provided in `.env.example` files.
+```
+PORT=3000
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=admin
+DB_PASSWORD=adminpass
+DB_NAME=product_catalog
+JWT_SECRET=your_jwt_secret
+NODE_ENV=development
+FORCE_SYNC=false
+SEED_DATABASE=true
+SEED_COUNT=100
+ALLOWED_ORIGINS=http://localhost:5173
+```
 
-## License
+### Frontend Environment Variables (.env)
 
-MIT License - See LICENSE file for details
+```
+VITE_API_URL=http://localhost:3000/api
+```
+
+## 🔄 API Endpoints
+
+The API includes the following main endpoints:
+
+- **Products**: `/api/products`
+  - GET `/api/products` - List all products with filters and pagination
+  - GET `/api/products/categories` - Get all product categories
+  - GET `/api/products/:id` - Get product details by ID
+
+- **Reviews**: `/api/reviews`
+  - GET `/api/reviews/product/:id` - Get reviews for a product
+  - POST `/api/reviews/product/:id` - Add a review to a product
+
+- **Users**: `/api/users`
+  - POST `/api/users/register` - Register a new user
+  - POST `/api/users/login` - Authenticate a user
+  - PATCH `/api/users/preferences` - Update user preferences
+
+- **Wishlist**: `/api/wishlist`
+  - GET `/api/wishlist` - Get user's wishlist
+  - POST `/api/wishlist/product/:id` - Add product to wishlist
+  - DELETE `/api/wishlist/product/:id` - Remove product from wishlist
+
+- **Admin**: `/api/admin`
+  - Various administrative endpoints for managing the system
+
+## 📄 License
+
+MIT License - See [LICENSE](LICENSE) file for details
