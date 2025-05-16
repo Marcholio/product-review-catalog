@@ -32,6 +32,23 @@ const ProductList: React.FC = () => {
   ]);
   const [debouncedBudgetRange, setDebouncedBudgetRange] = useState<[number, number]>(budgetRange);
   const [categories, setCategories] = useState<string[]>([]);
+  
+  // Update local state when user preferences change (e.g., after page refresh)
+  useEffect(() => {
+    if (user?.preferences) {
+      if (user.preferences.defaultSort) {
+        setSortBy(user.preferences.defaultSort);
+      }
+      if (user.preferences.defaultCategory !== undefined) {
+        setSelectedCategory(user.preferences.defaultCategory);
+      }
+      // Update budget range only if both values are defined
+      const minBudget = user.preferences.minBudget !== undefined ? user.preferences.minBudget : 0;
+      const maxBudget = user.preferences.maxBudget !== undefined ? user.preferences.maxBudget : MAX_PRICE;
+      setBudgetRange([minBudget, maxBudget]);
+      setDebouncedBudgetRange([minBudget, maxBudget]);
+    }
+  }, [user]);
   const navigate = useNavigate();
 
   // Debounce search query
@@ -182,6 +199,9 @@ const ProductList: React.FC = () => {
   const handleBudgetRangeBlur = useCallback(async () => {
     if (user && token) {
       try {
+        // Create a local copy of user before update
+        const currentUser = { ...user };
+        
         await updatePreferences({
           minBudget: budgetRange[0] > 0 ? budgetRange[0] : undefined,
           maxBudget: budgetRange[1] < MAX_PRICE && budgetRange[1] !== MAX_PRICE ? budgetRange[1] : undefined
@@ -189,6 +209,7 @@ const ProductList: React.FC = () => {
       } catch (err) {
         console.error('Error updating budget preferences:', err);
         if (err instanceof Error && err.message !== 'Not authenticated') {
+          // Show error but don't disrupt the user experience
           setError(err.message);
         }
       }

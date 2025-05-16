@@ -348,11 +348,13 @@ export const updatePreferences = async (req: Request, res: Response) => {
       preferences: updatedUser.preferences
     });
 
+    // Ensure we preserve the isAdmin status
     res.json({
       user: {
         id: updatedUser.id,
         email: updatedUser.email,
         name: updatedUser.name,
+        // Make sure we explicitly set isAdmin from the database value
         isAdmin: updatedUser.isAdmin || false,
         preferences: updatedUser.preferences,
       },

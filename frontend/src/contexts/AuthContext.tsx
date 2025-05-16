@@ -174,6 +174,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLoading(true);
     
     try {
+      // Save current user information in case the API call fails
+      const currentUser = user;
+      
       const data = await api.request('/users/preferences', {
         method: 'PATCH',
         body: { preferences },
@@ -182,8 +185,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
       
       if (data.user) {
-        setUser(data.user);
-        localStorage.setItem('user', JSON.stringify(data.user));
+        // Preserve the admin status if it's not in the response
+        const updatedUser = {
+          ...data.user,
+          // If the isAdmin field is lost in the response, keep the original value
+          isAdmin: data.user.isAdmin !== undefined ? data.user.isAdmin : currentUser?.isAdmin || false
+        };
+        
+        setUser(updatedUser);
+        localStorage.setItem('user', JSON.stringify(updatedUser));
       }
     } catch (err) {
       console.error('Error updating preferences:', err);
