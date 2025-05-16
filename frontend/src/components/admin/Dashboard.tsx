@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { FiHome, FiPackage, FiUsers, FiMessageSquare, FiSettings } from 'react-icons/fi';
@@ -7,12 +7,63 @@ import ProductManagement from './ProductManagement';
 import UserManagement from './UserManagement';
 import ReviewManagement from './ReviewManagement';
 import Settings from './Settings';
+import { API_URL } from '../../config';
 
 type Tab = 'dashboard' | 'products' | 'users' | 'reviews' | 'settings';
 
+interface DashboardStats {
+  productCount: number;
+  userCount: number;
+  pendingReviewCount: number;
+}
+
 const AdminDashboard: React.FC = () => {
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
+  const [stats, setStats] = useState<DashboardStats>({
+    productCount: 0,
+    userCount: 0,
+    pendingReviewCount: 0
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch dashboard stats when in dashboard tab and have token
+  useEffect(() => {
+    const fetchDashboardStats = async () => {
+      if (activeTab !== 'dashboard' || !token) return;
+      
+      try {
+        setLoading(true);
+        setError(null);
+        
+        const response = await fetch(`${API_URL}/admin/dashboard/stats`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch dashboard statistics');
+        }
+        
+        const data = await response.json();
+        
+        if (data.success && data.data) {
+          setStats(data.data);
+        } else {
+          console.error('Unexpected response format:', data);
+        }
+      } catch (err) {
+        console.error('Error fetching dashboard stats:', err);
+        setError(err instanceof Error ? err.message : 'An error occurred');
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchDashboardStats();
+  }, [activeTab, token]);
 
   // Redirect non-admin users
   if (!user || !user.isAdmin) {
@@ -34,67 +85,98 @@ const AdminDashboard: React.FC = () => {
         return (
           <div className="p-6">
             <h2 className="text-2xl font-bold mb-6 text-gray-900">Admin Dashboard</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {/* Dashboard cards */}
-              <Card variant="default" className="p-6">
-                <div className="flex items-center mb-4">
-                  <FiPackage className="mr-2 text-blue-600" size={20} />
-                  <h3 className="text-lg font-semibold">Products</h3>
-                </div>
-                <p className="text-3xl font-bold">123</p>
-                <p className="text-sm text-gray-500 mt-1">Total products</p>
-                <button 
-                  onClick={() => setActiveTab('products')}
-                  className="mt-4 text-blue-600 hover:text-blue-800 text-sm font-medium bg-white"
-                >
-                  Manage products →
-                </button>
-              </Card>
-              
-              <Card variant="default" className="p-6">
-                <div className="flex items-center mb-4">
-                  <FiUsers className="mr-2 text-green-600" size={20} />
-                  <h3 className="text-lg font-semibold">Users</h3>
-                </div>
-                <p className="text-3xl font-bold">45</p>
-                <p className="text-sm text-gray-500 mt-1">Registered users</p>
-                <button 
-                  onClick={() => setActiveTab('users')}
-                  className="mt-4 text-blue-600 hover:text-blue-800 text-sm font-medium bg-white"
-                >
-                  Manage users →
-                </button>
-              </Card>
-              
-              <Card variant="default" className="p-6">
-                <div className="flex items-center mb-4">
-                  <FiMessageSquare className="mr-2 text-amber-600" size={20} />
-                  <h3 className="text-lg font-semibold">Reviews</h3>
-                </div>
-                <p className="text-3xl font-bold">38</p>
-                <p className="text-sm text-gray-500 mt-1">Pending reviews</p>
-                <button 
-                  onClick={() => setActiveTab('reviews')}
-                  className="mt-4 text-blue-600 hover:text-blue-800 text-sm font-medium bg-white"
-                >
-                  Moderate reviews →
-                </button>
-              </Card>
-              
-              <Card variant="default" className="p-6">
-                <div className="flex items-center mb-4">
-                  <FiSettings className="mr-2 text-gray-600" size={20} />
-                  <h3 className="text-lg font-semibold">Settings</h3>
-                </div>
-                <p className="text-sm text-gray-500 mt-1">Configure application settings and permissions</p>
-                <button 
-                  onClick={() => setActiveTab('settings')}
-                  className="mt-4 text-blue-600 hover:text-blue-800 text-sm font-medium bg-white"
-                >
-                  Go to settings →
-                </button>
-              </Card>
-            </div>
+            
+            {loading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <Card variant="default" className="p-6">
+                  <div className="animate-pulse flex flex-col h-40 justify-center items-center">
+                    <div className="h-6 w-24 bg-gray-300 rounded mb-4"></div>
+                    <div className="h-10 w-16 bg-gray-300 rounded mb-4"></div>
+                    <div className="h-4 w-36 bg-gray-300 rounded"></div>
+                  </div>
+                </Card>
+                <Card variant="default" className="p-6">
+                  <div className="animate-pulse flex flex-col h-40 justify-center items-center">
+                    <div className="h-6 w-24 bg-gray-300 rounded mb-4"></div>
+                    <div className="h-10 w-16 bg-gray-300 rounded mb-4"></div>
+                    <div className="h-4 w-36 bg-gray-300 rounded"></div>
+                  </div>
+                </Card>
+                <Card variant="default" className="p-6">
+                  <div className="animate-pulse flex flex-col h-40 justify-center items-center">
+                    <div className="h-6 w-24 bg-gray-300 rounded mb-4"></div>
+                    <div className="h-10 w-16 bg-gray-300 rounded mb-4"></div>
+                    <div className="h-4 w-36 bg-gray-300 rounded"></div>
+                  </div>
+                </Card>
+              </div>
+            ) : error ? (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-xl mb-6">
+                <p>Error loading dashboard data: {error}</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {/* Dashboard cards */}
+                <Card variant="default" className="p-6">
+                  <div className="flex items-center mb-4">
+                    <FiPackage className="mr-2 text-blue-600" size={20} />
+                    <h3 className="text-lg font-semibold">Products</h3>
+                  </div>
+                  <p className="text-3xl font-bold">{stats.productCount}</p>
+                  <p className="text-sm text-gray-500 mt-1">Total products</p>
+                  <button 
+                    onClick={() => setActiveTab('products')}
+                    className="mt-4 text-blue-600 hover:text-blue-800 text-sm font-medium bg-white"
+                  >
+                    Manage products →
+                  </button>
+                </Card>
+                
+                <Card variant="default" className="p-6">
+                  <div className="flex items-center mb-4">
+                    <FiUsers className="mr-2 text-green-600" size={20} />
+                    <h3 className="text-lg font-semibold">Users</h3>
+                  </div>
+                  <p className="text-3xl font-bold">{stats.userCount}</p>
+                  <p className="text-sm text-gray-500 mt-1">Registered users</p>
+                  <button 
+                    onClick={() => setActiveTab('users')}
+                    className="mt-4 text-blue-600 hover:text-blue-800 text-sm font-medium bg-white"
+                  >
+                    Manage users →
+                  </button>
+                </Card>
+                
+                <Card variant="default" className="p-6">
+                  <div className="flex items-center mb-4">
+                    <FiMessageSquare className="mr-2 text-amber-600" size={20} />
+                    <h3 className="text-lg font-semibold">Reviews</h3>
+                  </div>
+                  <p className="text-3xl font-bold">{stats.pendingReviewCount}</p>
+                  <p className="text-sm text-gray-500 mt-1">Pending reviews</p>
+                  <button 
+                    onClick={() => setActiveTab('reviews')}
+                    className="mt-4 text-blue-600 hover:text-blue-800 text-sm font-medium bg-white"
+                  >
+                    Moderate reviews →
+                  </button>
+                </Card>
+                
+                <Card variant="default" className="p-6">
+                  <div className="flex items-center mb-4">
+                    <FiSettings className="mr-2 text-gray-600" size={20} />
+                    <h3 className="text-lg font-semibold">Settings</h3>
+                  </div>
+                  <p className="text-sm text-gray-500 mt-1">Configure application settings and permissions</p>
+                  <button 
+                    onClick={() => setActiveTab('settings')}
+                    className="mt-4 text-blue-600 hover:text-blue-800 text-sm font-medium bg-white"
+                  >
+                    Go to settings →
+                  </button>
+                </Card>
+              </div>
+            )}
           </div>
         );
     }

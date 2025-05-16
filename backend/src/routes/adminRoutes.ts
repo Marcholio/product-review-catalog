@@ -5,7 +5,8 @@ import {
   deleteUser, 
   getAllReviews, 
   updateReviewStatus, 
-  deleteReview 
+  deleteReview,
+  getDashboardStats
 } from '../controllers/adminController.js';
 import { authenticate, adminAuth } from '../middleware/auth/index.js';
 
@@ -276,5 +277,42 @@ router.post('/reviews/:reviewId/status', authenticate, adminAuth, updateReviewSt
  *         description: Server error
  */
 router.delete('/reviews/:reviewId', authenticate, adminAuth, deleteReview);
+
+/**
+ * @swagger
+ * /api/admin/dashboard/stats:
+ *   get:
+ *     summary: Get dashboard statistics
+ *     description: Get statistics for admin dashboard (counts of products, users, and pending reviews)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Dashboard statistics
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     productCount:
+ *                       type: integer
+ *                     userCount:
+ *                       type: integer
+ *                     pendingReviewCount:
+ *                       type: integer
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Admin access required
+ *       500:
+ *         description: Server error
+ */
+router.get('/dashboard/stats', authenticate, adminAuth, getDashboardStats);
 
 export default router;

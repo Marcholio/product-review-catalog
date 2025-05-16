@@ -347,3 +347,43 @@ export const deleteReview = asyncHandler(async (req: AuthRequest, res: Response)
     });
   }
 });
+
+/**
+ * Get dashboard statistics for admin dashboard
+ */
+export const getDashboardStats = asyncHandler(async (req: AuthRequest, res: Response) => {
+  try {
+    // Get counts using raw SQL queries for better performance
+    const [productCount] = await sequelize.query(
+      'SELECT COUNT(*) as count FROM "Products"',
+      { type: QueryTypes.SELECT }
+    );
+    
+    const [userCount] = await sequelize.query(
+      'SELECT COUNT(*) as count FROM "Users"',
+      { type: QueryTypes.SELECT }
+    );
+    
+    const [pendingReviewCount] = await sequelize.query(
+      'SELECT COUNT(*) as count FROM "Reviews" WHERE status = \'pending\'',
+      { type: QueryTypes.SELECT }
+    );
+    
+    // Return the statistics
+    res.json({
+      success: true,
+      data: {
+        productCount: Number((productCount as any).count),
+        userCount: Number((userCount as any).count),
+        pendingReviewCount: Number((pendingReviewCount as any).count),
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching dashboard statistics:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Error fetching dashboard statistics', 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    });
+  }
+});
