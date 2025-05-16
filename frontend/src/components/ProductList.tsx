@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import type { Product } from '../types/ProductType';
@@ -109,8 +109,7 @@ const ProductList: React.FC = () => {
         totalProducts: data.totalProducts
       });
       
-      // Small delay to prevent UI flickering
-      await new Promise(resolve => setTimeout(resolve, 300));
+      // Removed artificial delay to improve performance
       setProducts(data.products || []);
       setTotalPages(data.totalPages || 1);
       setError(null);
@@ -140,7 +139,8 @@ const ProductList: React.FC = () => {
     }
   };
 
-  const handleSortChange = async (newSort: string) => {
+  // Memoize all event handlers with useCallback to prevent unnecessary re-renders
+  const handleSortChange = useCallback(async (newSort: string) => {
     setSortBy(newSort);
     if (user && token) {
       try {
@@ -152,9 +152,9 @@ const ProductList: React.FC = () => {
         }
       }
     }
-  };
+  }, [user, token, updatePreferences, setError]);
 
-  const handleCategoryChange = async (category: string) => {
+  const handleCategoryChange = useCallback(async (category: string) => {
     setSelectedCategory(category);
     if (user && token) {
       try {
@@ -166,9 +166,9 @@ const ProductList: React.FC = () => {
         }
       }
     }
-  };
+  }, [user, token, updatePreferences, setError]);
 
-  const handleBudgetRangeChange = (newRange: [number, number]) => {
+  const handleBudgetRangeChange = useCallback((newRange: [number, number]) => {
     // Ensure min <= max and round values for better UX
     const roundedMin = Math.floor(newRange[0] / 10) * 10;
     const roundedMax = Math.ceil(newRange[1] / 10) * 10;
@@ -177,9 +177,9 @@ const ProductList: React.FC = () => {
     if (roundedMin <= roundedMax) {
       setBudgetRange([roundedMin, roundedMax]);
     }
-  };
+  }, [setBudgetRange]);
 
-  const handleBudgetRangeBlur = async () => {
+  const handleBudgetRangeBlur = useCallback(async () => {
     if (user && token) {
       try {
         await updatePreferences({
@@ -193,11 +193,11 @@ const ProductList: React.FC = () => {
         }
       }
     }
-  };
+  }, [user, token, budgetRange, updatePreferences, setError, MAX_PRICE]);
 
-  const handleProductClick = (productId: string) => {
+  const handleProductClick = useCallback((productId: string) => {
     navigate(`/products/${productId}`);
-  };
+  }, [navigate]);
 
   return (
     <div className="w-full min-h-[calc(100vh-4rem)]">

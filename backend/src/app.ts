@@ -1,6 +1,7 @@
 import express, { Express, json, urlencoded } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import compression from 'compression';
 import swaggerUi from 'swagger-ui-express';
 
 import config from './config/environment.js';
@@ -22,6 +23,22 @@ const createApp = (): Express => {
   
   // Security middleware
   app.use(helmet());
+  
+  // Compression middleware - reduces payload size for all responses
+  app.use(compression({
+    // Filter function to determine which responses to compress
+    filter: (req, res) => {
+      // Don't compress responses explicitly set to no compression
+      if (req.headers['x-no-compression']) {
+        return false;
+      }
+      
+      // By default, compress all responses
+      return compression.filter(req, res);
+    },
+    // Compression level (0-9, where 9 is maximum compression but slower)
+    level: 6
+  }));
   
   // Rate limiting - apply different limits to different routes
   // Order matters: specific routes first, then catch-all

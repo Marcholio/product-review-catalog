@@ -6,13 +6,17 @@ interface ImageWithFallbackProps {
   alt: string;
   className?: string;
   fallbackClassName?: string;
+  sizes?: string;
+  loading?: 'lazy' | 'eager';
 }
 
 const ImageWithFallback: React.FC<ImageWithFallbackProps> = ({
   src,
   alt,
   className = '',
-  fallbackClassName = ''
+  fallbackClassName = '',
+  sizes = '(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw',
+  loading = 'lazy'
 }) => {
   const [imageError, setImageError] = useState(false);
 
@@ -28,14 +32,30 @@ const ImageWithFallback: React.FC<ImageWithFallbackProps> = ({
     );
   }
 
+  // Generate responsive image URLs for srcSet
+  const generateSrcSet = () => {
+    if (!src) return '';
+    
+    // Check if the URL already has parameters
+    const hasParams = src.includes('?');
+    const connector = hasParams ? '&' : '?';
+    
+    return `${src}${connector}w=300 300w, ${src}${connector}w=600 600w, ${src}${connector}w=900 900w`;
+  };
+
   return (
     <img
       src={src}
       alt={alt}
       className={className}
       onError={handleError}
+      loading={loading}
+      srcSet={generateSrcSet()}
+      sizes={sizes}
+      decoding="async"
     />
   );
 };
 
-export default ImageWithFallback;
+// Memoize to prevent unnecessary re-renders
+export default React.memo(ImageWithFallback);

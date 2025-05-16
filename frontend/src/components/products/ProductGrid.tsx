@@ -40,4 +40,5 @@ const ProductGrid: React.FC<ProductGridProps> = ({
   );
 };
 
-export default ProductGrid;
+// Memoize ProductGrid to prevent unnecessary re-renders
+export default React.memo(ProductGrid);

@@ -77,4 +77,5 @@ const ProductCard: React.FC<ProductCardProps> = ({
   );
 };
 
-export default ProductCard;
+// Memoize ProductCard to prevent unnecessary re-renders when parent components change
+export default React.memo(ProductCard);

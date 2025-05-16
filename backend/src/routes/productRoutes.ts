@@ -1,6 +1,7 @@
 import express from 'express';
 import productController from '../controllers/productController.js';
 import { optionalAuth } from '../middleware/auth/index.js';
+import { cacheMiddleware, generateQueryCacheKey } from '../middleware/cache.js';
 
 const router = express.Router();
 
@@ -55,7 +56,9 @@ const router = express.Router();
  *       500:
  *         description: Server error
  */
-router.get('/', optionalAuth, productController.getAllProducts);
+// Cache product list for 5 minutes (300 seconds), but use custom key generator
+// for proper caching of different query parameters
+router.get('/', optionalAuth, cacheMiddleware(300, generateQueryCacheKey), productController.getAllProducts);
 
 /**
  * @swagger
@@ -76,7 +79,8 @@ router.get('/', optionalAuth, productController.getAllProducts);
  *       500:
  *         description: Server error
  */
-router.get('/categories', productController.getProductCategories);
+// Cache categories for 1 hour (3600 seconds) since they rarely change
+router.get('/categories', cacheMiddleware(3600), productController.getProductCategories);
 
 /**
  * @swagger
@@ -119,6 +123,7 @@ router.post('/admin/recalculate-ratings', productController.recalculateAllRating
  *       500:
  *         description: Server error
  */
-router.get('/:id', optionalAuth, productController.getProductById);
+// Cache individual product details for 10 minutes (600 seconds)
+router.get('/:id', optionalAuth, cacheMiddleware(600), productController.getProductById);
 
 export default router;
