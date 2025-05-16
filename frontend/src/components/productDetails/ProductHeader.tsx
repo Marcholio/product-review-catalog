@@ -139,7 +139,8 @@ const ProductHeader: React.FC<ProductHeaderProps> = ({
                 onClick={() => addItem(product, quantity)}
                 variant="primary"
                 leftIcon={<FiShoppingCart />}
-                className="mr-2"
+                className="mr-2 text-white"
+                style={{color: 'white !important'}}
                 id="add-to-cart-button"
               >
                 Add to Cart

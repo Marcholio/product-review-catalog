@@ -34,7 +34,7 @@ const AuthForm: React.FC = () => {
   return (
     <div className="min-h-screen w-full flex flex-col md:flex-row bg-gradient-to-br from-blue-50 to-indigo-100">
       {/* Left Banner Section - Only visible on desktop */}
-      <div className="hidden md:flex md:w-1/2 bg-blue-600 text-white p-8 flex-col justify-center items-center">
+      <div className="hidden md:flex md:w-1/2 bg-blue-700 text-white p-8 flex-col justify-center items-center">
         <div className="max-w-lg mx-auto">
           <div className="flex items-center justify-center mb-8">
             <FiShoppingBag className="text-white h-12 w-12" />

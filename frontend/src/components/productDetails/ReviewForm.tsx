@@ -124,6 +124,8 @@ const ReviewForm: React.FC<ReviewFormProps> = ({
           variant="primary"
           isLoading={isSubmitting}
           leftIcon={!isSubmitting ? <FiCheck /> : undefined}
+          className="text-white"
+          style={{color: 'white !important'}}
         >
           Submit Review
         </Button>

@@ -57,7 +57,7 @@ const Navbar = () => {
               <FiShoppingCart className="h-5 w-5" />
               <span>Cart</span>
               {itemCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                <span style={{color: '#ffffff !important'}} className="absolute -top-1 -right-1 bg-blue-600 text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center shadow-sm">
                   {itemCount > 99 ? '99+' : itemCount}
                 </span>
               )}
@@ -154,7 +154,7 @@ const Navbar = () => {
               <div className="relative">
                 <FiShoppingCart className="h-5 w-5" />
                 {itemCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs font-bold rounded-full h-4 w-4 flex items-center justify-center">
+                  <span style={{color: '#ffffff !important'}} className="absolute -top-1 -right-1 bg-blue-600 text-xs font-bold rounded-full h-4 w-4 flex items-center justify-center shadow-sm">
                     {itemCount > 9 ? '9+' : itemCount}
                   </span>
                 )}

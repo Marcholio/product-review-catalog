@@ -34,11 +34,11 @@ const Button: React.FC<ButtonProps> = ({
   };
   
   const variantStyles = {
-    primary: 'bg-white bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700',
+    primary: 'bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700',
     secondary: 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300',
-    danger: 'bg-white bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700',
+    danger: 'bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700',
     outline: 'bg-white text-blue-600 border border-blue-500 hover:bg-blue-50',
-    link: 'bg-white bg-transparent text-blue-600 hover:text-blue-800 hover:underline',
+    link: 'bg-transparent text-blue-600 hover:text-blue-800 hover:underline',
   };
   
   const widthStyles = fullWidth ? 'w-full' : '';
