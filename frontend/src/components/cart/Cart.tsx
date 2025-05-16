@@ -101,8 +101,7 @@ export const Cart: React.FC<CartProps> = () => {
                 <div className="mt-6">
                   <Link
                     to="/checkout"
-                    className="w-full flex justify-center items-center px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700"
-                    style={{color: 'white !important'}}
+                    className="w-full flex justify-center items-center px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white hover:text-white bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700"
                     onClick={closeCart}
                   >
                     Checkout

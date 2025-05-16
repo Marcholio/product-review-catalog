@@ -107,7 +107,7 @@ const Navbar = () => {
             ) : (
               <Link
                 to="/auth"
-                className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg text-sm font-medium transition-colors duration-200 flex items-center space-x-1"
+                className="bg-blue-600 hover:bg-blue-700 text-white hover:text-white px-5 py-2 rounded-lg text-sm font-medium transition-colors duration-200 flex items-center space-x-1"
                 id="onboarding-auth-button"
               >
                 <FiUser className="h-4 w-4" />
@@ -208,7 +208,7 @@ const Navbar = () => {
             ) : (
               <Link
                 to="/auth"
-                className="flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium text-blue-600 hover:bg-blue-50"
+                className="flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium text-white bg-blue-600 hover:bg-blue-700 hover:text-white"
                 onClick={() => setIsMenuOpen(false)}
               >
                 <FiUser className="h-4 w-4" />
